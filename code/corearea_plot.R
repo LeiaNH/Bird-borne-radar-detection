@@ -18,7 +18,6 @@ rm(msk_valid)
 # Loading colonies
 c <- read.csv2(paste0(WD,"input/colonysites.csv"))
 
-
 # ~~~~~~~~~~~~~~~~~~~ #
 # Mean marine traffic #
 # ~~~~~~~~~~~~~~~~~~~ #
