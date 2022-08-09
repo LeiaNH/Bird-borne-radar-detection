@@ -2,7 +2,7 @@
 # general objects needed #
 ##########################
 
-# just messing around
+#messing
 
 # load bathymetry
 bath <- marmap::getNOAA.bathy(
