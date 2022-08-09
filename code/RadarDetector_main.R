@@ -27,8 +27,6 @@ source(paste0(WD,"code/RadarDetector_sources.R"))
 # Palettes
 #---------------------------------------------------------------
 
-#marinetraffic <- c("#f7f7f7", "#0793f7", "#0793f7", "#edf511", "#ff6f08")
-#marinetraffic <- c("#f7f7f7","#D7191C", "#FDAE61","#FFFFBF","#ABDDA4","#32A2E7")
 marinetraffic <- c("#f7f7f7","#32A2E7","#B5FA8D","#FFFFBF","#FDAE61", "#FF7900")
 
 cols_colony <- scale_colour_manual(name="colonyName",
