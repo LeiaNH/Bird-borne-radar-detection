@@ -2,6 +2,8 @@
 # general objects needed #
 ##########################
 
+# just messing around
+
 # load bathymetry
 bath <- marmap::getNOAA.bathy(
   lon1 = -28, lon2 = 7,
