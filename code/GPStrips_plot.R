@@ -37,6 +37,7 @@ GPS <- files %>%
 # plot it #
 ###########
 
+
 p <- ggplot(bath) +
   geom_raster(aes(x, y),fill="white")+ 
   xlab("Longitude") + ylab("Latitude")+
@@ -116,7 +117,7 @@ p <- ggplot(bath) +
     geom = "text",
     x = -15,
     y = 30,
-    label = "Monta?a\nClara",
+    label = "Montaña\nClara",
     fontface = "italic",
     color = "#E69F00",
     size = 1.4
