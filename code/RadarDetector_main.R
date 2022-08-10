@@ -2,6 +2,9 @@
 # Radar detectors.R            Main script for processing radar detector sensor data
 #-----------------------------------------------------------------------------------
 
+# Cleaning environment #
+gdata::keep(place, WD, sure = TRUE)
+
 #---------------------------------------------------------------
 # Set working directory and Sys.Time
 #---------------------------------------------------------------
@@ -24,7 +27,11 @@ source(paste0(WD,"code/RadarDetector_sources.R"))
 # Palettes
 #---------------------------------------------------------------
 
+
 marinetraffic <- c("#f7f7f7","#32A2E7","#B5FA8D","#FFFFBF","#FDAE61", "#FF7900")
+
+
+
 
 cols_colony <- scale_colour_manual(name="colonyName",
                                  values = c("CalaMorell"= "#0072B2",
@@ -32,7 +39,7 @@ cols_colony <- scale_colour_manual(name="colonyName",
                                             "Veneguera"= "#D55E00",
                                             "CVelho"= "#009E73"), 
                                  labels = c("CalaMorell"= "Cala Morell",
-                                            "MClara"= "Monta?a Clara",
+                                            "MClara"= "Montaña Clara",
                                             "Veneguera"= "Veneguera",
                                             "CVelho"= "Curral Velho"))
 
