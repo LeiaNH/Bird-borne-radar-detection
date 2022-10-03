@@ -11,13 +11,13 @@
 
 # load worldmap as sf
 
-load(paste0(WD, "input/valid_world_map.Rdata"))
+load(paste0(WD, "GitData/Bird-borne-radar-detection/input/valid_world_map.Rdata"))
 msk_valid %>% 
   dplyr::select(Name) -> msk_sf  
 
 # load colony locations
 
-c <- read.csv2(paste0(WD,"input/colonysites.csv"))
+c <- read.csv2(paste0(WD,"GitData/Bird-borne-radar-detection/input/colonysites.csv"))
 
 
 ########
@@ -25,20 +25,20 @@ c <- read.csv2(paste0(WD,"input/colonysites.csv"))
 ########
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*trips_L2.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*trips_L2.csv", recursive = TRUE)
 
 # Read all files
 GPS <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*radar_L2.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*radar_L2.csv", recursive = TRUE)
 
 # Read all files
 RADAR <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 ########
 #Step 2#
@@ -152,7 +152,7 @@ foreach(i=1:length(colonysites), .packages=c("dplyr" ,"sf","gridExtra", "tidyver
   
   plotlist_f <- flatten(plotlist)
   
-  setwd(paste0(WD,"/output/plots/"))
+  setwd(paste0(WD,"GitData/Bird-borne-radar-detection//output/plots/"))
   ggsave(
     filename = paste0("splitTrips_II_",colonysites[i],"_L2.pdf"), 
     plot = gridExtra::marrangeGrob(grobs=plotlist_f, nrow=4, ncol=1), 

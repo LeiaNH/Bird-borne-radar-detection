@@ -11,8 +11,8 @@ gdata::keep(place, WD, sure = TRUE)
 
 place <- "miniPC"
 #place<- "laptop"
-if (place == "miniPC") WD <- "D:/Dropbox/LEIA/PROJECTS_LEIA/Radars_2022/"
-if (place == "laptop") WD <- "C:/Users/lnh88/Dropbox/LEIA/PROJECTS_LEIA/Radars_2022/" 
+if (place == "miniPC") WD <- "D:/Dropbox/"
+if (place == "laptop") WD <- "C:/Users/lnh88/Dropbox/" 
 
 Sys.setenv(TZ="GMT") ### !!! IMPORTANT: IF NOT SET LIKE THIS, MAKE PROBLEMS TO CREATE DATE_TIME FROM PASTING DATE plus TIME
 
@@ -21,17 +21,13 @@ Sys.setenv(TZ="GMT") ### !!! IMPORTANT: IF NOT SET LIKE THIS, MAKE PROBLEMS TO C
 #---------------------------------------------------------------
 
 # Run code #
-source(paste0(WD,"code/RadarDetector_sources.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/RadarDetector_sources.R"))
 
 #---------------------------------------------------------------
 # Palettes
 #---------------------------------------------------------------
 
-
 marinetraffic <- c("#f7f7f7","#32A2E7","#B5FA8D","#FFFFBF","#FDAE61", "#FF7900")
-
-
-
 
 cols_colony <- scale_colour_manual(name="colonyName",
                                  values = c("CalaMorell"= "#0072B2",
@@ -39,7 +35,7 @@ cols_colony <- scale_colour_manual(name="colonyName",
                                             "Veneguera"= "#D55E00",
                                             "CVelho"= "#009E73"), 
                                  labels = c("CalaMorell"= "Cala Morell",
-                                            "MClara"= "Montaña Clara",
+                                            "MClara"= "MontaÃ±a Clara",
                                             "Veneguera"= "Veneguera",
                                             "CVelho"= "Curral Velho"))
 
@@ -73,7 +69,7 @@ cols_risk <- scale_colour_manual(name="Risk",
 # extension _L0.csv
 
 # Run code #
-# source(paste0(WD,"code/RadarTagFiles_comparison.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/RadarTagFiles_comparison.R"))
 
 # Cleaning environment #
 # gdata::keep(place, WD, sure = TRUE)
@@ -125,7 +121,7 @@ SplitThr_v = 1
 TimeThr_v = 900
 
 # Run code #
-#source(paste0(WD,"code/trip_split.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/trip_split.R"))
 
 #### TRIP FILTER ####-----------------------------------------------
 
@@ -142,7 +138,7 @@ TimeThr_v = 900
 duration_v = 5
 
 # Run code #
-#source(paste0(WD,"code/trip_filter.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/trip_filter.R"))
 
 
 #### RADAR INTERPOLATION ####-----------------------------------------------
@@ -160,7 +156,7 @@ duration_v = 5
 TimeThr_v = 60
 
 # Run code #
-source(paste0(WD,"code/radar_interpolation.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_interpolation.R"))
 
 
 #### TRIP VIEW EXPLORATION ####-----------------------------------------------
@@ -173,7 +169,7 @@ source(paste0(WD,"code/radar_interpolation.R"))
 # extension L2.pdf
 
 # Run code #
-#source(paste0(WD,"code/trip_check.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/trip_check.R"))
 
 ###############################
 #### RADAR DATA PROCESSING ####
@@ -212,7 +208,7 @@ radar_v = 1
 radarID_v = 1
 
 # Run code #
-#source(paste0(WD,"code/radar_events.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_events.R"))
 
 ###############################
 #### CORE AREAS PARAMETERS ####
@@ -230,7 +226,7 @@ radarID_v = 1
 perc_KUD = 50
 
 # Run code #
-#source(paste0(WD,"code/indEffectTest.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/indEffectTest.R"))
 
 ################################
 #### CORE AREAS CALCULATION ####
@@ -248,7 +244,7 @@ perc_KUD = 50
 perc_KUD = 50
 
 # Run code #
-#source(paste0(WD,"code/CoreAreas.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/CoreAreas.R"))
 
 ##########################################################
 #### PROPORTION OF RADAR DETECTIONS WITHIN CORE AREAS ####
@@ -261,7 +257,7 @@ perc_KUD = 50
 # corearea_radarevents_sz
 
 # Run code #
-#source(paste0(WD,"code/CoreAreas_radar_events.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/CoreAreas_radar_events.R"))
 
 ################################
 #### VESSEL DATA PROCESSING ####
@@ -283,7 +279,7 @@ distance <- 5000  # in meters
 
 
 # Run code #
-#source(paste0(WD,"code/dailyGFW_radar_events.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/dailyGFW_radar_events.R"))
 
 #### PREPARATION OF MONTHLY SUMMARIZED NON-FISHING VESSEL FOOTPRINT  ####------------------------------
 
@@ -295,7 +291,7 @@ distance <- 5000  # in meters
 # extension_sAISdomestif.tif including passenger-cargo-tanger sAIS types
 
 # Run code #
-source(paste0(WD,"code/monthlyAIS_sztiff.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/monthlyAIS_sztiff.R"))
 
 
 #### PREPARATION OF MONTHLY SUMMARIZED FISHING VESSEL FOOTPRINT  ####------------------------------
@@ -312,7 +308,7 @@ source(paste0(WD,"code/monthlyAIS_sztiff.R"))
 res <- 0.25
 
 # Run code #
-source(paste0(WD,"code/monthlyGFW_sztiff.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/monthlyGFW_sztiff.R"))
 
 #### EXTRACTION OF MARINE VESSEL TRAFFIC VALUES PER RADAR HOURLYBINS  ####------------------------------
 
@@ -330,7 +326,7 @@ source(paste0(WD,"code/monthlyGFW_sztiff.R"))
 distance <- 5000  # in meters
 
 # Run code #
-source(paste0(WD,"code/radar_hourlybins_vesseltraffic.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_hourlybins_vesseltraffic.R"))
 
 
 #### EXTRACTION OF MARINE VESSEL TRAFFIC VALUES PER RADAR EVENT  ####----------------------------
@@ -349,7 +345,7 @@ source(paste0(WD,"code/radar_hourlybins_vesseltraffic.R"))
 distance <- 5000  # in meters
 
 # Run code #
-source(paste0(WD,"code/radar_events_unreportedGFW.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_events_unreportedGFW.R"))
 
 
 #########################################
@@ -366,7 +362,7 @@ source(paste0(WD,"code/radar_events_unreportedGFW.R"))
 # extention HourlyBins_radar_evaluation.csv (we overwrite same files)
 
 # Run code #
-source(paste0(WD,"code/radar_hourlybins_temporalcovars.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_hourlybins_temporalcovars.R"))
 
 
 #### GAMM models  ####------------------------------
@@ -379,7 +375,7 @@ source(paste0(WD,"code/radar_hourlybins_temporalcovars.R"))
 # extention gamm_models.csv 
 
 # Run code #
-source(paste0(WD,"code/radar_hourlybins_GAMM.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_hourlybins_GAMM.R"))
 
 #### GAMM Population comparative  ####------------------------------
 
@@ -393,7 +389,7 @@ source(paste0(WD,"code/radar_hourlybins_GAMM.R"))
 # extention AUC_models.csv 
 
 # Run code #
-source(paste0(WD,"code/radar_hourlybins_GAMM_sz.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_hourlybins_GAMM_sz.R"))
 
 
 #---------------------------------------------------------------
@@ -410,7 +406,7 @@ source(paste0(WD,"code/radar_hourlybins_GAMM_sz.R"))
 # extension _GPStrips.png
 
 # Run code #
-source(paste0(WD,"code/Fig_GPStrips.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/Fig_GPStrips.R"))
 
 # Cleaning environment #
 gdata::keep(place, WD, sure = TRUE)
@@ -424,7 +420,7 @@ gdata::keep(place, WD, sure = TRUE)
 # extension _CoreArea.png
 
 # Run code #
-source(paste0(WD,"code/corearea_plot.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/corearea_plot.R"))
 
 # Cleaning environment #
 gdata::keep(place, WD, sure = TRUE)
@@ -440,7 +436,7 @@ gdata::keep(place, WD, sure = TRUE)
 # ... nothing yet, exploratory status
 
 # Run code #
-source(paste0(WD,"code/radar_events_unreportedGFW_plot.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_events_unreportedGFW_plot.R"))
 
 
 #### GAMM: PARTIAL EFFECTS####
@@ -453,7 +449,7 @@ source(paste0(WD,"code/radar_events_unreportedGFW_plot.R"))
 # ggeffects_FishingvsNonFishing.png
 
 # Run code #
-source(paste0(WD,"code/radar_hourlybins_GAMM_partialeffects_plot.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_hourlybins_GAMM_partialeffects_plot.R"))
 
 #### GAMM: RESIDUAL'S PLOT ####
 
@@ -464,7 +460,7 @@ source(paste0(WD,"code/radar_hourlybins_GAMM_partialeffects_plot.R"))
 # ggeffects_FishingvsNonFishing.png
 
 # Run code #
-source(paste0(WD,"code/radar_hourlybins_GAMM_residuals_plot.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_hourlybins_GAMM_residuals_plot.R"))
 
 
 
@@ -483,7 +479,7 @@ source(paste0(WD,"code/radar_hourlybins_GAMM_residuals_plot.R"))
 # extension _dailyGFW_sz.csv
 
 # Run code #
-source(paste0(WD,"code/dailyGFW_radar_events_sz.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/dailyGFW_radar_events_sz.R"))
 
 # Cleaning environment #
 gdata::keep(place, WD, sure = TRUE)
@@ -500,7 +496,7 @@ head(sz1)
 # tripsamplesize_sz. csv
 
 # Run code #
-source(paste0(WD,"code/trip_distance_sz.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/trip_distance_sz.R"))
 
 # Cleaning environment #
 gdata::keep(place, WD, sure = TRUE)
@@ -517,7 +513,7 @@ head(sz1)
 # allmodels.csv
 
 # Run code #
-source(paste0(WD,"code/modelset_table.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/modelset_table.R"))
 
 # Cleaning environment #
 gdata::keep(place, WD, sure = TRUE)

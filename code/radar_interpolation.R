@@ -14,19 +14,19 @@
 
 # load colony locations
 
-c <- read.csv2(paste0(WD,"input/colonysites.csv"))
+c <- read.csv2(paste0(WD,"GitData/Bird-borne-radar-detection/input/colonysites.csv"))
 
 ########
 #Step 1#
 ########
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*trips_L2.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*trips_L2.csv", recursive = TRUE)
 
 # Read all files
 GPS <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 
 ########
@@ -34,10 +34,10 @@ GPS <- files %>%
 ########
 
 # setwd
-setwd(paste0(WD, "input/RADAR"))
+setwd(paste0(WD, "GitData/Bird-borne-radar-detection/input/RADAR"))
 
 # List radar raw files
-files <- list.files(path = paste0(WD, "input/RADAR"), pattern = "*.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/input/RADAR"), pattern = "*.csv", recursive = TRUE)
 
 # apply the function to all files
 RAD <- map_df(files, radar_import)
@@ -311,4 +311,4 @@ for (i in seq_along(colonysites)){
     distinct()
   
   # write dataset
-  fwrite(radar_group, file=paste0(WD,"/output/",colonysites[i],"_radar_L2.csv"),row.names=FALSE)}
+  fwrite(radar_group, file=paste0(WD,"GitData/Bird-borne-radar-detection//output/",colonysites[i],"_radar_L2.csv"),row.names=FALSE)}

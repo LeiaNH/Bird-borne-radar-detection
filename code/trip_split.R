@@ -18,19 +18,19 @@
 
 # load worldmap as sf
 
-load(paste0(WD, "input/valid_world_map.Rdata"))
+load(paste0(WD, "GitData/Bird-borne-radar-detection/input/valid_world_map.Rdata"))
 msk_valid %>% 
   dplyr::select(Name) -> msk_sf  
 
 # load colony locations
 
-c <- read.csv2(paste0(WD,"input/colonysites.csv"))
+c <- read.csv2(paste0(WD,"GitData/Bird-borne-radar-detection/input/colonysites.csv"))
 
 ########
 #Step 1#
 ########
 
-deployment_v <- fread(file=paste0(WD,"output/filenames_L0.csv")) %>%
+deployment_v <- fread(file=paste0(WD,"GitData/Bird-borne-radar-detection/output/filenames_L0.csv")) %>%
   # select deploymentID 
   dplyr::select(deploymentID) %>%
   pull(deploymentID)
@@ -41,7 +41,7 @@ deployment_v <- fread(file=paste0(WD,"output/filenames_L0.csv")) %>%
 ########
 
 # Make a list of available csv files 
-setwd(paste0(WD,"input/GPS"))
+setwd(paste0(WD,"GitData/Bird-borne-radar-detection/input/GPS"))
 files <- list.files(pattern = '.csv') 
 
 # parse to dataframe
@@ -316,7 +316,7 @@ foreach(i=1:length(colonysites), .packages=c("track2KBA", "dplyr" ,"sf", "SDLfil
   ########
   
   # write dataset
-  fwrite(trips_df, file=paste0(WD,"/output/",colonysites[i],"_trips_L1.csv"),row.names=FALSE)
+  fwrite(trips_df, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/",colonysites[i],"_trips_L1.csv"),row.names=FALSE)
   
   #########
   #Step 10#
@@ -383,7 +383,7 @@ foreach(i=1:length(colonysites), .packages=c("track2KBA", "dplyr" ,"sf", "SDLfil
   
   plotlist_f <- flatten(plotlist)
 
-  setwd(paste0(WD,"/output/plots/"))
+  setwd(paste0(WD,"GitData/Bird-borne-radar-detection/output/plots/"))
   ggsave(
     filename = paste0("splitTrips_",colonysites[i],"_L1.pdf"), 
     plot = gridExtra::marrangeGrob(grobs=plotlist_f, nrow=4, ncol=1), 

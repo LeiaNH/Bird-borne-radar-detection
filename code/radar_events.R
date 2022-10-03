@@ -11,12 +11,12 @@
 ########
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*radar_L2.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*radar_L2.csv", recursive = TRUE)
 
 # Read all files
 RAD <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 ########
 #Step 2#
@@ -87,7 +87,7 @@ for (i in seq_along(colonysites)){
     dplyr::filter(colonyName == colony)
   
   # write dataset
-  fwrite(radar_group, file=paste0(WD,"/output/",colonysites[i],"_events_radar_L3.csv"),row.names=FALSE)}
+  fwrite(radar_group, file=paste0(WD,"GitData/Bird-borne-radar-detection//output/",colonysites[i],"_events_radar_L3.csv"),row.names=FALSE)}
 
 
 ########
@@ -107,12 +107,12 @@ registerDoParallel(cl)
 
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*trips_L2.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*trips_L2.csv", recursive = TRUE)
 
 # Read all files
 GPS <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 foreach(i=1:length(colonysites), .packages=c("dplyr" ,"sf","gridExtra", "tidyverse","cowplot", "data.table", "lubridate", "purrr")) %dopar% {
   
@@ -175,7 +175,7 @@ foreach(i=1:length(colonysites), .packages=c("dplyr" ,"sf","gridExtra", "tidyver
   
   plotlist_f <- flatten(plotlist)
   
-  setwd(paste0(WD,"/output/plots/"))
+  setwd(paste0(WD,"GitData/Bird-borne-radar-detection//output/plots/"))
   ggsave(
     filename = paste0("radarevents_",colonysites[i],"_L3.pdf"), 
     plot = gridExtra::marrangeGrob(grobs=plotlist_f, nrow=4, ncol=2), 

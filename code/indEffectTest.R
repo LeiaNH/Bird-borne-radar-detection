@@ -13,10 +13,10 @@
 ########
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*trips_L2.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*trips_L2.csv", recursive = TRUE)
 
 # Read colonysites
-c <- read.csv2(paste0(WD,"input/colonysites.csv"))
+c <- read.csv2(paste0(WD,"GitData/Bird-borne-radar-detection/input/colonysites.csv"))
 
 # levels
 colonySites <- unique(c$colonyName)
@@ -32,7 +32,7 @@ for (i in seq_along(colonySites)){
 # Read all files
 trips <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) %>%
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) %>%
   dplyr::filter(colonyName == colonySites[i]) 
 
 # Loading colonies
@@ -64,7 +64,7 @@ tracks_formatted <- formatFields(
 sumTrips <- tripSummary(tracks_formatted, colony)
 
 # write summary
-fwrite(sumTrips, file=paste0(WD,"output/", colonySites[i] ,"_sumTrips.csv"),row.names=FALSE)
+fwrite(sumTrips, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/", colonySites[i] ,"_sumTrips.csv"),row.names=FALSE)
 
 # should be TRUE
 # length(unique(tracks_formatted$tripID)) == nrow(sumTrips)
@@ -80,7 +80,7 @@ tracks_prj <- projectTracks(
   custom = "TRUE")
 
 # calculate candidate smoothing parameter values
-h_vals <- findScale(tracks_prj, sumTrips = sumTrips, scaleARS = FALSE)
+h_vals <- findScale(tracks_prj, sumTrips = sumTrips, scaleARS = TRUE)
 
 ########
 #Step 5#
@@ -103,6 +103,30 @@ h_vals$indEffectTest <- result[["Kolmogorov-Smirnov"]][["ks"]][["p.value"]]
 ########
 
 # write summary
-fwrite(h_vals, file=paste0(WD,"output/", colonySites[i] ,"_h_vals.csv"),row.names=FALSE)
+fwrite(h_vals, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/", colonySites[i] ,"_h_vals.csv"),row.names=FALSE)
+
+####
+#CA#
+####
+UD <- estSpaceUse(tracks_prj, scale = h_vals$scaleARS, levelUD = perc_KUD, polyOut = TRUE)
+mapKDE(UD$UDPolygons)
+
+
+repr <- repAssess(
+  tracks    = tracks_prj, 
+  KDE       = UD$KDE.Surface,
+  levelUD   = perc_KUD,
+  iteration = 1000, 
+  bootTable = FALSE)
+
+Site <- findSite(
+  KDE = UD$KDE.Surface,
+  represent = repr$out,
+  levelUD = 50,
+  popSize = 6.946*2,     #individual seabirds breed one the island
+  polyOut = TRUE)
+
+mapKDE(Site)
+
 
 }

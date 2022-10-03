@@ -10,7 +10,7 @@
 ########
 
 # Make a list of available csv files 
-setwd(paste0(WD,"input/GPS"))
+setwd(paste0(WD,"GitData/Bird-borne-radar-detection/input/GPS"))
 files <- list.files(pattern = '.csv') ## here we are taking all files ending in .csv
 
 # apply the function to all files
@@ -24,7 +24,7 @@ colnames(GPS) <- paste(colnames(GPS), "GPS", sep = "_")
 ########
 
 # Make a list of available csv files 
-setwd(paste0(WD,"input/RADAR"))
+setwd(paste0(WD,"GitData/Bird-borne-radar-detection/input/RADAR"))
 files <- list.files(pattern = '.csv') ## here we are taking all files ending in .csv
 
 # apply the function to all files
@@ -64,6 +64,6 @@ comparison <- merge(GPS, RAD, by = "deploymentID", all = TRUE) %>%
 
 # write csv
 
-fwrite(comparison, file=paste0(WD,"output/filenames_L0.csv"),row.names=FALSE)
+fwrite(comparison, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/filenames_L0.csv"),row.names=FALSE)
 
 
