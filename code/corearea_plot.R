@@ -9,14 +9,14 @@ bath <- marmap::getNOAA.bathy(
   resolution = 4)
 
 # load worldmap as sf
-load(paste0(WD, "input/valid_world_map.Rdata"))
+load(paste0(WD, "GitData/Bird-borne-radar-detection/input/valid_world_map.Rdata"))
 msk_valid %>% 
   dplyr::select(Name) -> msk_sf  
 
 rm(msk_valid)
 
 # Loading colonies
-c <- read.csv2(paste0(WD,"input/colonysites.csv"))
+c <- read.csv2(paste0(WD,"GitData/Bird-borne-radar-detection/input/colonysites.csv"))
 
 
 # ~~~~~~~~~~~~~~~~~~~ #
@@ -24,14 +24,14 @@ c <- read.csv2(paste0(WD,"input/colonysites.csv"))
 # ~~~~~~~~~~~~~~~~~~~ #
 
 # List _sAISnonfishing.tif extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*_sAISnonfishing.tif", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*_sAISnonfishing.tif", recursive = TRUE)
 files <- gsub("_sAISnonfishing.tif","", files)
 
-r1 <- raster::raster(paste0(WD,"input/sAIS/",files[1],"/",files[1],"_COUNT_dens.tif"))
+r1 <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/input/sAIS/",files[1],"/",files[1],"_COUNT_dens.tif"))
 ##x11();plot(r1, xlim=c(-25,5),ylim=c(14,43))
-r2 <- raster::raster(paste0(WD,"input/sAIS/",files[2],"/",files[2],"_COUNT_dens.tif"))
+r2 <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/input/sAIS/",files[2],"/",files[2],"_COUNT_dens.tif"))
 ##x11();plot(r2, xlim=c(-25,5),ylim=c(14,43))
-r3 <- raster::raster(paste0(WD,"input/sAIS/",files[3],"/",files[3],"_COUNT_dens.tif"))
+r3 <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/input/sAIS/",files[3],"/",files[3],"_COUNT_dens.tif"))
 ##x11();plot(r3, xlim=c(-25,5),ylim=c(14,43))
 
 # mean of all rasters
@@ -43,12 +43,12 @@ r <- mean(r1, r2, r3, na.rm = T)
 # ~~~~~~~~~~~~ #
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*_events_radar_L3.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*_events_radar_L3.csv", recursive = TRUE)
 
 # Read all files
 RAD <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 # Add population label
 RAD <- RAD %>%
@@ -61,7 +61,7 @@ RAD <- RAD %>%
 # Core Areas #
 # ~~~~~~~~~~ #
 
-CA <- readRDS(paste0(WD, "output/CoreAreas.rds"))
+CA <- readRDS(paste0(WD, "GitData/Bird-borne-radar-detection/output/CoreAreas.rds"))
 
 # ~~~~~~~ #
 # plot it #
@@ -127,10 +127,11 @@ p1 <- ggplot() +
   geom_sf(data = msk_sf, 
           color = "black", fill = "gray90",lwd  = 0.2) +  
   scale_fill_gradientn(colours = marinetraffic, label = function(x) sprintf("%.2f", x),limits=c(min(r_i$denslog), max(r_i$denslog)))+
-  geom_sf(data= ca, colour="white", fill="white",alpha=0.2,size=0.8)+  
-  geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
+
   geom_sf(color = "black", fill = "gray90",size = 0.2) + 
   geom_point(data=radar_group,aes(x=longitude, y=latitude), colour="#CF202E", fill="red",alpha=1,shape=21,size=1,show.legend = F) +
+    geom_sf(data= ca, colour="white", fill="white",alpha=0.5,size=0.8)+  
+  geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
   coord_sf(xlim = lon_bounds, ylim=lat_bounds, expand = F, ndiscr = 1000) +   
   theme_bw()+
   theme(legend.position = c(0.13,0.6),
@@ -187,8 +188,7 @@ p1 <- ggplot() +
   )
 
 
-#x11()
-#plot(p1)
+#x11();plot(p1)
 
 p1_leg1 <- cowplot::get_legend(p1)
 plot(p1_leg1)
@@ -198,10 +198,10 @@ p1 <- ggplot() +
   geom_sf(data = msk_sf, 
           color = "black", fill = "gray90",lwd  = 0.2) +  
   scale_fill_gradientn(colours = marinetraffic, label = function(x) sprintf("%.2f", x),limits=c(min(r_i$denslog), max(r_i$denslog)))+
-  geom_sf(data= ca, colour="white", fill="white",alpha=0.2,size=0.8)+  
-  geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
-  geom_sf(color = "black", fill = "gray90",size = 0.2) + 
+   geom_sf(color = "black", fill = "gray90",size = 0.2) + 
   geom_point(data=radar_group,aes(x=longitude, y=latitude), colour="#CF202E", fill="red",alpha=1,shape=21,size=1,show.legend = F) +
+  geom_sf(data= ca, colour="white", fill="white",alpha=0.5,size=0.8)+  
+  geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
   geom_contour(data = bath, aes(x, y, z = z),
                breaks=c(-200),
                colour="black", lwd  = 0.3 ,
@@ -320,10 +320,11 @@ p2 <- ggplot() +
   geom_sf(data = msk_sf, 
           color = "black", fill = "gray90",lwd  = 0.2) +  
   scale_fill_gradientn(colours = marinetraffic, label = function(x) sprintf("%.2f", x),limits=c(min(r_i$denslog), max(r_i$denslog)))+
-  geom_sf(data= ca, colour="white", fill="white",alpha=0.2,size=0.8)+  
+ 
+  geom_point(data=radar_group,aes(x=longitude, y=latitude), colour="#CF202E", fill="red",alpha=1,shape=21,size=1,show.legend = F) + 
+  geom_sf(data= ca, colour="white", fill="white",alpha=0.5,size=0.8)+  
   geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
   geom_sf(color = "black", fill = "gray90",size = 0.2) + 
-  geom_point(data=radar_group,aes(x=longitude, y=latitude), colour="#CF202E", fill="red",alpha=1,shape=21,size=1,show.legend = F) +
   coord_sf(xlim = lon_bounds, ylim=lat_bounds, expand = F, ndiscr = 1000) +   
   theme_bw()+
   theme(legend.position = c(0.13,0.6),
@@ -379,8 +380,7 @@ p2 <- ggplot() +
     size = 3.5+1
   )
 
-#x11()
-#plot(p2)
+#x11();plot(p2)
 
 p2_leg1 <- cowplot::get_legend(p2)
 plot(p2_leg1)
@@ -390,10 +390,10 @@ p2 <- ggplot() +
   geom_sf(data = msk_sf, 
           color = "black", fill = "gray90",lwd  = 0.2) +  
   scale_fill_gradientn(colours = marinetraffic, label = function(x) sprintf("%.2f", x),limits=c(min(r_i$denslog), max(r_i$denslog)))+
-  geom_sf(data= ca, colour="white", fill="white",alpha=0.2,size=0.8)+  
-  geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
-  geom_sf(color = "black", fill = "gray90",size = 0.2) + 
+   geom_sf(color = "black", fill = "gray90",size = 0.2) + 
   geom_point(data=radar_group,aes(x=longitude, y=latitude), colour="#CF202E", fill="red",alpha=1,shape=21,size=1,show.legend = F) +
+  geom_sf(data= ca, colour="white", fill="white",alpha=0.5,size=0.8)+  
+  geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
   geom_contour(data = bath, aes(x, y, z = z),
                breaks=c(-200),
                colour="black", lwd  = 0.3 ,
@@ -513,10 +513,10 @@ p3 <- ggplot() +
   geom_sf(data = msk_sf, 
           color = "black", fill = "gray90",lwd  = 0.2) +  
   scale_fill_gradientn(colours = marinetraffic, label = function(x) sprintf("%.2f", x),limits=c(min(r_i$denslog), max(r_i$denslog)))+
-  geom_sf(data= ca, colour="white", fill="white",alpha=0.2,size=0.8)+  
-  geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
-  geom_sf(color = "black", fill = "gray90",size = 0.2) + 
+   geom_sf(color = "black", fill = "gray90",size = 0.2) + 
   geom_point(data=radar_group,aes(x=longitude, y=latitude), colour="#CF202E", fill="red",alpha=1,shape=21,size=1,show.legend = F) +
+  geom_sf(data= ca, colour="white", fill="white",alpha=0.5,size=0.8)+  
+  geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
   coord_sf(xlim = lon_bounds, ylim=lat_bounds, expand = F, ndiscr = 1000) +   
   theme_bw()+
   theme(legend.position = c(0.13,0.6),
@@ -578,8 +578,7 @@ p3 <- ggplot() +
     size = 3.5+1
   )
 
-#x11()
-#plot(p3)
+#x11();plot(p3)
 
 p3_leg1 <- cowplot::get_legend(p3)
 plot(p3_leg1)
@@ -589,10 +588,10 @@ p3 <- ggplot() +
   geom_sf(data = msk_sf, 
           color = "black", fill = "gray90",lwd  = 0.2) +  
   scale_fill_gradientn(colours = marinetraffic, label = function(x) sprintf("%.2f", x),limits=c(min(r_i$denslog), max(r_i$denslog)))+
-  geom_sf(data= ca, colour="white", fill="white",alpha=0.2,size=0.8)+  
-  geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
   geom_sf(color = "black", fill = "gray90",size = 0.2) + 
   geom_point(data=radar_group,aes(x=longitude, y=latitude), colour="#CF202E", fill="red",alpha=1,shape=21,size=1,show.legend = F) +
+  geom_sf(data= ca, colour="white", fill="white",alpha=0.5,size=0.8)+  
+  geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
   geom_contour(data = bath, aes(x, y, z = z),
                breaks=c(-200),
                colour="black", lwd  = 0.3 ,
@@ -671,8 +670,7 @@ legends <- ggpubr::ggarrange(
   ncol=2)
 
 
-setwd(paste0(WD,"outputs/figures"))
-Cairo::Cairo(file = "legendsmap_corearea.png",
+Cairo::Cairo(file = paste0(WD,"GitData/Bird-borne-radar-detection/output/figures/legendsmap_corearea.png"),
              type = "png",
              units = "mm",
              width = 350,
@@ -689,23 +687,21 @@ dev.off()
 #############
 # composite #
 #############
-setwd(paste0(WD,"outputs/figures"))
 
 composite <- ggpubr::ggarrange(
   p1,p3,p2, 
   #labels  = c("A","B","C"),
-  ncol = 3, nrow = 1,
+  ncol = 1, nrow = 3,
   align="hv",
   common.legend = F)
 
-setwd(paste0(WD,"outputs/figures"))
-
-Cairo::Cairo(file = "CoreArea.png",
+Cairo::Cairo(file = paste0(WD,"GitData/Bird-borne-radar-detection/output/figures/CoreArea.png"),
              type = "png",
              units = "mm",
-             width = 510,
-             height = 110,
-             dpi = 100,
+             width = 400,
+             height = 300,
+             dpi = 200,
              bg = "white")
 composite
 dev.off()
+#x11(); plot(composite)

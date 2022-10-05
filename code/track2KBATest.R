@@ -25,6 +25,8 @@ colonySites <- unique(c$colonyName)
 #Step 2#
 ########
 
+#perc_KUD = 100
+
 for (i in seq_along(colonySites)){
 
   # i = 1
@@ -104,29 +106,6 @@ h_vals$indEffectTest <- result[["Kolmogorov-Smirnov"]][["ks"]][["p.value"]]
 
 # write summary
 fwrite(h_vals, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/", colonySites[i] ,"_h_vals.csv"),row.names=FALSE)
-
-####
-#CA#
-####
-UD <- estSpaceUse(tracks_prj, scale = h_vals$scaleARS, levelUD = perc_KUD, polyOut = TRUE)
-mapKDE(UD$UDPolygons)
-
-
-repr <- repAssess(
-  tracks    = tracks_prj, 
-  KDE       = UD$KDE.Surface,
-  levelUD   = perc_KUD,
-  iteration = 1000, 
-  bootTable = FALSE)
-
-Site <- findSite(
-  KDE = UD$KDE.Surface,
-  represent = repr$out,
-  levelUD = 50,
-  popSize = 6.946*2,     #individual seabirds breed one the island
-  polyOut = TRUE)
-
-mapKDE(Site)
 
 
 }

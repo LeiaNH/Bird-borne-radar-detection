@@ -35,56 +35,40 @@ GPS <- files %>%
 ########
 
 # select only the coordinates and the level desired
-allGPS <- GPS %>%
+GPS <- GPS %>%
   dplyr::select(longitude, latitude, colonyName)%>%
   dplyr::rename(id = colonyName)%>%
   dplyr::mutate(id = as.factor(id))
 
-levels <- unique(allGPS$id)
+# create an object only with the coordinates
+xy <- GPS %>%
+  dplyr::select(longitude,latitude)
 
-for (i in 1:length(levels)){
-  
-  i=2
-  
-  GPS <- allGPS %>%
-    dplyr::filter(id == levels[i])
-  
-  # create an object only with the coordinates
-  xy <- GPS %>%
-    dplyr::select(longitude,latitude)
-  
-  # parse coordinates to spatialpointsdataframe
-  spdf <- SpatialPointsDataFrame (xy, proj4string=CRS("+proj=longlat +datum=WGS84"), data = GPS)
-  plot(spdf)
+# parse coordinates to spatialpointsdataframe
+spdf <- SpatialPointsDataFrame (xy, proj4string=CRS("+proj=longlat +datum=WGS84"), data = GPS)
+plot(spdf)
 
-  #spdf@proj4string
-  #spdf@data$id
+#spdf@proj4string
+#spdf@data$id
 
-  # read h values estimated by track2kba
-  h_val <- read_csv(paste0(WD,"GitData/Bird-borne-radar-detection/output/",levels[i], "_h_vals.csv")) %>%
-    pull(scaleARS)
+# read h values estimated by track2kba
+h_files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*h_vals.csv", recursive = TRUE)
 
-  # Calculate kernelUD areas
-  #KUDs <- adehabitatHR::kernelUD (spdf[,3], same4all = T, h = "href", grid = 500, extent = 0.5)
-  #KUDs <- adehabitatHR::kernelUD (spdf, h = "href", same4all = TRUE)
-  KUDs <- adehabitatHR::kernelUD (spdf, h = h_val/1000, same4all = TRUE, grid = 600)
-  
-  plot(KUDs)
-  
-  # Substract home ranges
-  ver <- adehabitatHR::getverticeshr(KUDs, perc_KUD)
+h_values <- h_files %>%
+  # read in all the files, appending the path before the filename
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) %>%
+  dplyr::mutate(file = h_files)
 
-  # check it
-  plot(ver)
+h_values
 
-  
-  ## Estimation of the UD with grid=20 and extent=0.2
-  image(kernelUD(spdf, h = h_val, same4all = TRUE, grid=500, extent=0.5))
+# Calculate kernelUD areas
+KUDs <- adehabitatHR::kernelUD (spdf[,3], same4all = T, h = "href", grid = 500, extent = 0.5)
 
-  
-}
+# Substract home ranges
+ver <- adehabitatHR::getverticeshr(KUDs, perc_KUD)
 
-
+# check it
+plot(ver)
 
 ########
 #Step 3#

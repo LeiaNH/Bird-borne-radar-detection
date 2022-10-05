@@ -35,83 +35,126 @@ GPS <- files %>%
 ########
 
 # select only the coordinates and the level desired
-GPS <- GPS %>%
+allGPS <- GPS %>%
   dplyr::select(longitude, latitude, colonyName)%>%
   dplyr::rename(id = colonyName)%>%
   dplyr::mutate(id = as.factor(id))
 
-# create an object only with the coordinates
-xy <- GPS %>%
-  dplyr::select(longitude,latitude)
 
-# parse coordinates to spatialpointsdataframe
-spdf <- SpatialPointsDataFrame (xy, proj4string=CRS("+proj=longlat +datum=WGS84"), data = GPS)
-plot(spdf)
 
-#spdf@proj4string
-#spdf@data$id
+#-----------------#
+# Prepare cluster #
+#-----------------#
 
-# read h values estimated by track2kba
-h_files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*h_vals.csv", recursive = TRUE)
+# let's %dopar% per colony site 
+colonysites <- unique(allGPS$id)
 
-h_values <- h_files %>%
-  # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) %>%
-  dplyr::mutate(file = h_files)
+cores <- length(colonysites) #Define number of cores
+cl <- makeCluster(cores)
+registerDoParallel(cl)
 
-h_values
+#-----------------------#
+# Parallel foreach loop #
+#-----------------------#
 
-# Calculate kernelUD areas
-KUDs <- adehabitatHR::kernelUD (spdf[,3], same4all = T, h = "href", grid = 500, extent = 0.5)
+l <- foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.table", "lubridate", "purrr", "sp", "readr", "adehabitatHR", "rgeos", "sf" )) %dopar% {
+  
+#for (i in 1:length(colonysites)){
+  #i=3
+  
+  GPS <- allGPS %>%
+    dplyr::filter(id == colonysites[i])
+  
+  # create an object only with the coordinates
+  xy <- GPS %>%
+    dplyr::select(longitude,latitude)
+  
+  # parse coordinates to spatialpointsdataframe
+  spdf <- SpatialPointsDataFrame (xy, proj4string=CRS("+proj=longlat +datum=WGS84"), data = GPS)
+  plot(spdf)
 
-# Substract home ranges
-ver <- adehabitatHR::getverticeshr(KUDs, perc_KUD)
+  #spdf@proj4string
+  #spdf@data$id
 
-# check it
-plot(ver)
+  # read h values estimated by track2kba. All values are in kilometers.
+  h_val <- read_csv(paste0(WD,"GitData/Bird-borne-radar-detection/output/",colonysites[i], "_h_vals.csv")) %>%
+    #pull(scaleARS)
+    pull(href)
+  
+  # grid
+  x <- seq(min(GPS$longitude)-0.5,max(GPS$longitude)+0.5,by=0.01) # where resolution is the pixel size you desire 
+  y <- seq(min(GPS$latitude)-0.5,max(GPS$latitude)+0.5,by=0.01)
+  xy <- expand.grid(x=x,y=y)
+  coordinates(xy) <- ~x+y
+  gridded(xy) <- TRUE
+  class(xy)
+  
+  # Calculate kernelUD areas
+ # KUDs <- adehabitatHR::kernelUD (spdf, same4all = T, h = "href")
+  KUDs <- adehabitatHR::kernelUD (spdf, grid = xy, h = "href")
+  
+  #KUDs@h
+  #h_val/100
+  
+  #KUDs <- adehabitatHR::kernelUD (spdf, h = h_val/100, grid = xy)
+  
+  plot(KUDs)
+  
+  # Substract home ranges
+  perc_KUD = 50
+  ver <- adehabitatHR::getverticeshr(KUDs, perc_KUD)
 
-########
-#Step 3#
-########
+  # check it
+  plot(ver, add=TRUE, col = "white")
+  
+  ########
+  #Step 3#
+  ########
 
-#overlaping
-class(ver)
-class(msk_sf)
+  #overlaping
+  class(ver)
+  class(msk_sf)
 
-# parse mask land to spatial
-land <- as(msk_sf, Class = "Spatial") 
-class(land)
+  # parse mask land to spatial
+  land <- as(msk_sf, Class = "Spatial") 
+  class(land)
 
-# check projection
-proj4string(land)
+  # check projection
+  proj4string(land)
 
-# crop both
-crop <- rgeos::gDifference(ver, land, byid=TRUE)
+  # crop both
+  crop <- rgeos::gDifference(ver, land, byid=TRUE)
 
-# check it
-plot(ver, col = "red")
-plot(crop, col="blue", add = T)
+  # check it
+  plot(ver, col = "red")
+  plot(crop, col="blue", add = T)
+  
+  crop
+  }
 
-# split
-BalearicIs <- crop[1]
-plot(BalearicIs)
-
-CaboVerde <- crop[2]
-plot(CaboVerde)
 
 ########
 #Step 4#
 ########
+colonysites
+
+# split
+BalearicIs <- l[[1]]
+plot(BalearicIs)
+
+CaboVerde <- l[[2]]
+plot(CaboVerde)
 
 # merge both kernels from Canary Is population
 
-canaryPop_colony1 <- crop[3]
+canaryPop_colony1 <- l[[3]]
 plot(canaryPop_colony1)
 
-canaryPop_colony2 <- crop[4]
-plot(canaryPop_colony2)
+canaryPop_colony2 <- l[[4]]
+plot(canaryPop_colony2, add =T)
 
-CanaryIs <-  aggregate(rbind(canaryPop_colony1, canaryPop_colony2)) 
+CanaryIs <-union(canaryPop_colony1, canaryPop_colony2)
+CanaryIs <- aggregate(CanaryIs, dissolve = TRUE)
 plot(CanaryIs)
 
 ########
@@ -122,4 +165,4 @@ plot(CanaryIs)
 
 KUDs <- list(BalearicIs, CaboVerde, CanaryIs)
 
-saveRDS(KUDs, paste0(WD,"output/CoreAreas.rds"))
+saveRDS(KUDs, paste0(WD,"GitData/Bird-borne-radar-detection/output/CoreAreas.rds"))

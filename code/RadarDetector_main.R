@@ -190,7 +190,7 @@ source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/trip_check.R"))
 radar_v = 1
 
 # Run code #
-#source(paste0(WD,"code/radar_hourlybins.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/code/radar_hourlybins.R"))
 
 
 #### AGGREGATE RADAR INTO RADAR EVENTS ####-----------------------------------------------
@@ -226,7 +226,7 @@ source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_events.R"))
 perc_KUD = 50
 
 # Run code #
-source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/indEffectTest.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/track2KBATest.R"))
 
 ################################
 #### CORE AREAS CALCULATION ####

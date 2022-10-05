@@ -11,12 +11,12 @@
 ########
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*_events_radar_L3.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "output/"), pattern = "*_events_radar_L3.csv", recursive = TRUE)
 
 # Read all files
 RAD <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
 
 # Add population label
 RAD <- RAD %>%
@@ -29,7 +29,7 @@ RAD <- RAD %>%
 #Step 2#
 ########
 
-CA <- readRDS(paste0(WD, "GitData/Bird-borne-radar-detection/output/CoreAreas.rds"))
+CA <- readRDS(paste0(WD, "output/CoreAreas.rds"))
 
 
 ########
@@ -42,8 +42,8 @@ sz <- list()
 
 for (i in seq_along(populations)){
   
-  #i = 1
-  print(i)
+  #i = 3
+  
   if(populations[[i]] == "BalearicIs"){
     poly <- CA[[1]]}
   
@@ -53,26 +53,12 @@ for (i in seq_along(populations)){
   if(populations[[i]] == "CanaryIs"){
     poly <- CA[[3]]}
   
-  plot(poly)
-  
   # subset population 
-  radar_pop <- RAD %>% 
+  radar_group <- RAD %>% 
     dplyr::filter(population == populations[[i]]) 
   
-  individuals <-  unique(radar_pop$organismID)
-  
-  ovr_l <- list()
-  
-  for (j in seq_along(individuals)){
-    
-    #print(j)
-    #j=1
-  
   # subset coordinates
-    radar_group <- radar_pop %>%
-        dplyr::filter(organismID == individuals[j])
-
-  coord <- radar_group %>%  
+  coord <- radar_group%>%
     dplyr::select(longitude,latitude)
   
   # parse to spatialpointsdataframe
@@ -90,10 +76,9 @@ for (i in seq_along(populations)){
   
   # check overlap
   point_ovr <- radar_group %>% drop_na(over) %>% dplyr::select(longitude, latitude)
-  
-  if(nrow(point_ovr)>0) {
   point_ovr <- SpatialPointsDataFrame (point_ovr,proj4string=CRS("+proj=longlat +datum=WGS84"), data=point_ovr)
-  plot(point_ovr, col="blue", add=T)}
+  plot(point_ovr, col="blue", add=T)
+  
   
   ########
   #Step 4#
@@ -109,7 +94,7 @@ for (i in seq_along(populations)){
   total$radarID2 = as.factor(total$radarID2)
   
   total <- length(unique(total$radarID2))
-     
+  
   # number of radar event totally or partially overlapping with core area
   
   ovr <- radar_group %>%
@@ -130,29 +115,10 @@ for (i in seq_along(populations)){
                n_radarevents_ca = ovr,
                percent_radarevents_ca = round(((ovr/total)*100),1))
   
-  ovr_l[j] <- list(ovr)
-  
-  
-  }
- 
-  ovr_output <- do.call(bind_rows, ovr_l)
-  
-  sz[i] <- list(ovr_output)
-  
+  sz[i] <- list(ovr)
   
 }
 
 sz <- do.call(bind_rows, sz)
 
-sz <- sz %>%
-  dplyr::group_by(population) %>%
-  summarize(
-    mean = mean(percent_radarevents_ca),
-    sd = sd(percent_radarevents_ca),
-    n_radarevents = sum(n_radarevents),
-    nradarevents_ca = sum(n_radarevents_ca)
-  )
-
-sz
-
-fwrite(sz, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/tables/corearea_radarevents_sz.csv"),row.names=FALSE)
+fwrite(sz, file=paste0(WD,"output/tables/corearea_radarevents_sz.csv"),row.names=FALSE)
