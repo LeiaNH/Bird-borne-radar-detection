@@ -130,7 +130,7 @@ p1 <- ggplot() +
 
   geom_sf(color = "black", fill = "gray90",size = 0.2) + 
   geom_point(data=radar_group,aes(x=longitude, y=latitude), colour="#CF202E", fill="red",alpha=1,shape=21,size=1,show.legend = F) +
-    geom_sf(data= ca, colour="white", fill="white",alpha=0.5,size=0.8)+  
+    geom_sf(data= ca, colour="white", fill="white",alpha=0.2,size=0.8)+  
   geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
   coord_sf(xlim = lon_bounds, ylim=lat_bounds, expand = F, ndiscr = 1000) +   
   theme_bw()+
@@ -200,7 +200,7 @@ p1 <- ggplot() +
   scale_fill_gradientn(colours = marinetraffic, label = function(x) sprintf("%.2f", x),limits=c(min(r_i$denslog), max(r_i$denslog)))+
    geom_sf(color = "black", fill = "gray90",size = 0.2) + 
   geom_point(data=radar_group,aes(x=longitude, y=latitude), colour="#CF202E", fill="red",alpha=1,shape=21,size=1,show.legend = F) +
-  geom_sf(data= ca, colour="white", fill="white",alpha=0.5,size=0.8)+  
+  geom_sf(data= ca, colour="white", fill="white",alpha=0.2,size=0.8)+  
   geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
   geom_contour(data = bath, aes(x, y, z = z),
                breaks=c(-200),
@@ -322,7 +322,7 @@ p2 <- ggplot() +
   scale_fill_gradientn(colours = marinetraffic, label = function(x) sprintf("%.2f", x),limits=c(min(r_i$denslog), max(r_i$denslog)))+
  
   geom_point(data=radar_group,aes(x=longitude, y=latitude), colour="#CF202E", fill="red",alpha=1,shape=21,size=1,show.legend = F) + 
-  geom_sf(data= ca, colour="white", fill="white",alpha=0.5,size=0.8)+  
+  geom_sf(data= ca, colour="white", fill="white",alpha=0.2,size=0.8)+  
   geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
   geom_sf(color = "black", fill = "gray90",size = 0.2) + 
   coord_sf(xlim = lon_bounds, ylim=lat_bounds, expand = F, ndiscr = 1000) +   
@@ -392,7 +392,7 @@ p2 <- ggplot() +
   scale_fill_gradientn(colours = marinetraffic, label = function(x) sprintf("%.2f", x),limits=c(min(r_i$denslog), max(r_i$denslog)))+
    geom_sf(color = "black", fill = "gray90",size = 0.2) + 
   geom_point(data=radar_group,aes(x=longitude, y=latitude), colour="#CF202E", fill="red",alpha=1,shape=21,size=1,show.legend = F) +
-  geom_sf(data= ca, colour="white", fill="white",alpha=0.5,size=0.8)+  
+  geom_sf(data= ca, colour="white", fill="white",alpha=0.2,size=0.8)+  
   geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
   geom_contour(data = bath, aes(x, y, z = z),
                breaks=c(-200),
@@ -515,7 +515,7 @@ p3 <- ggplot() +
   scale_fill_gradientn(colours = marinetraffic, label = function(x) sprintf("%.2f", x),limits=c(min(r_i$denslog), max(r_i$denslog)))+
    geom_sf(color = "black", fill = "gray90",size = 0.2) + 
   geom_point(data=radar_group,aes(x=longitude, y=latitude), colour="#CF202E", fill="red",alpha=1,shape=21,size=1,show.legend = F) +
-  geom_sf(data= ca, colour="white", fill="white",alpha=0.5,size=0.8)+  
+  geom_sf(data= ca, colour="white", fill="white",alpha=0.2,size=0.8)+  
   geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
   coord_sf(xlim = lon_bounds, ylim=lat_bounds, expand = F, ndiscr = 1000) +   
   theme_bw()+
@@ -590,7 +590,7 @@ p3 <- ggplot() +
   scale_fill_gradientn(colours = marinetraffic, label = function(x) sprintf("%.2f", x),limits=c(min(r_i$denslog), max(r_i$denslog)))+
   geom_sf(color = "black", fill = "gray90",size = 0.2) + 
   geom_point(data=radar_group,aes(x=longitude, y=latitude), colour="#CF202E", fill="red",alpha=1,shape=21,size=1,show.legend = F) +
-  geom_sf(data= ca, colour="white", fill="white",alpha=0.5,size=0.8)+  
+  geom_sf(data= ca, colour="white", fill="white",alpha=0.2,size=0.8)+  
   geom_sf(data = ca, colour="black", alpha=0.2,size=0.5)+  
   geom_contour(data = bath, aes(x, y, z = z),
                breaks=c(-200),
@@ -698,8 +698,8 @@ composite <- ggpubr::ggarrange(
 Cairo::Cairo(file = paste0(WD,"GitData/Bird-borne-radar-detection/output/figures/CoreArea.png"),
              type = "png",
              units = "mm",
-             width = 400,
-             height = 300,
+             width = 80*3,
+             height = 100*3,
              dpi = 200,
              bg = "white")
 composite

@@ -39,6 +39,14 @@ cols_colony <- scale_colour_manual(name="colonyName",
                                             "Veneguera"= "Veneguera",
                                             "CVelho"= "Curral Velho"))
 
+cols_pop <- scale_colour_manual(name="colonyName",
+                                   values = c("BalearicIs"= "#0072B2",
+                                              "CanaryIs"= "#f5c014",
+                                              "CaboVerde"= "#009E73"), 
+                                   labels = c("BalearicIs"= "C.diomedea",
+                                              "CanaryIs"= "C.borealis",
+                                              "CaboVerde"= "C.edwarsii"))
+
 fills_risk <- scale_fill_manual(name="Risk",
                                values = c("high"= "#ad1e02",
                                           "medium"= "#F0E442",
@@ -391,7 +399,20 @@ source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_hourlybins_GA
 # Run code #
 source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_hourlybins_GAMM_sz.R"))
 
+#### GAMM Cross-validation  ####------------------------------
 
+# Description #
+# kfold validation
+
+
+# Output data #
+# A file per colony
+# extention AUC_models_CV.csv 
+
+k_value = 5
+
+# Run code #
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_hourlybins_GAMM_sz.R"))
 #---------------------------------------------------------------
 # 6. Main Figures
 #---------------------------------------------------------------

@@ -99,36 +99,36 @@ for (i in seq_along(populations)){
   #Step 4#
   ########
   
-  # number of radar event
+  # summarize number of radar events (partially or completely) within core area 
+  total_ca <- radar_group %>%
+    group_by(radarID) %>%
+    summarize(
+      over = sum(over, na.rm= T))
   
-  total <- radar_group %>%
-    dplyr::mutate(
-      # create an unique radar ID per trip
-      radarID2 = paste0(tripID,"_", radarID)) 
+  if(sum(total_ca$over) == 0){
+    total_ca = 0
+  }else{
+    
+    total_ca <- total_ca %>%
+      dplyr::filter(over > 0) %>%
+      dplyr::select(radarID) %>%
+      distinct() 
+    
+    total_ca <- length(unique(total_ca$radarID))
+  }
   
-  total$radarID2 = as.factor(total$radarID2)
-  
-  total <- length(unique(total$radarID2))
      
-  # number of radar event totally or partially overlapping with core area
+  # summarize number of radar events
+  total <- length(unique(radar_group$radarID))
   
-  ovr <- radar_group %>%
-    dplyr::mutate(
-      # create an unique radar ID per trip
-      radarID2 = paste0(tripID,"_", radarID)) %>%
-    # remove points outside core areas
-    drop_na(over)
+  # summarized table
   
-  ovr$radarID2 = as.factor(ovr$radarID2)
-  
-  ovr <- length(unique(ovr$radarID2))
-  
-  # sz
-  
-  ovr <- tibble(population = unique(radar_group$population), 
-               n_radarevents = total, 
-               n_radarevents_ca = ovr,
-               percent_radarevents_ca = round(((ovr/total)*100),1))
+  ovr <- tibble(
+    population = unique(radar_group$population), 
+    individual = unique(radar_group$organismID),
+    n_radarevents = total, 
+    n_radarevents_ca = total_ca,
+    percent_radarevents_ca = round(((total_ca/total)*100),1))
   
   ovr_l[j] <- list(ovr)
   
@@ -147,8 +147,8 @@ sz <- do.call(bind_rows, sz)
 sz <- sz %>%
   dplyr::group_by(population) %>%
   summarize(
-    mean = mean(percent_radarevents_ca),
-    sd = sd(percent_radarevents_ca),
+    mean = round(mean(percent_radarevents_ca),1),
+    sd = round(sd(percent_radarevents_ca),1),
     n_radarevents = sum(n_radarevents),
     nradarevents_ca = sum(n_radarevents_ca)
   )

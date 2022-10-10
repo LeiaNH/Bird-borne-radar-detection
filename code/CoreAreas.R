@@ -17,6 +17,13 @@ load(paste0(WD, "GitData/Bird-borne-radar-detection/input/valid_world_map.Rdata"
 msk_valid %>% 
   dplyr::select(Name) -> msk_sf  
 
+# SUPER-USEFuL FUNCTION FROM https://github.com/omerkara
+km2d <- function(km, base.latitude = 38.280479) {
+  if (!requireNamespace("fields")) stop("Required fields package is missing.")
+  one.degree.dist <- fields::rdist.earth(matrix(c(0, base.latitude), ncol = 2), matrix(c(1, base.latitude), ncol = 2), miles = FALSE) ## 1 degree longitude distance in kilometers.
+  out <- km / one.degree.dist
+  return(out)
+}
 
 ########
 #Step 1#
@@ -60,7 +67,7 @@ registerDoParallel(cl)
 l <- foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.table", "lubridate", "purrr", "sp", "readr", "adehabitatHR", "rgeos", "sf" )) %dopar% {
   
 #for (i in 1:length(colonysites)){
-  #i=3
+  #i=1
   
   GPS <- allGPS %>%
     dplyr::filter(id == colonysites[i])
@@ -71,15 +78,17 @@ l <- foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.tab
   
   # parse coordinates to spatialpointsdataframe
   spdf <- SpatialPointsDataFrame (xy, proj4string=CRS("+proj=longlat +datum=WGS84"), data = GPS)
-  plot(spdf)
+  #plot(spdf)
 
   #spdf@proj4string
   #spdf@data$id
 
   # read h values estimated by track2kba. All values are in kilometers.
   h_val <- read_csv(paste0(WD,"GitData/Bird-borne-radar-detection/output/",colonysites[i], "_h_vals.csv")) %>%
-    #pull(scaleARS)
-    pull(href)
+    pull(scaleARS)
+    #pull(href)
+  
+  h_val <- km2d(h_val)
   
   # grid
   x <- seq(min(GPS$longitude)-0.5,max(GPS$longitude)+0.5,by=0.01) # where resolution is the pixel size you desire 
@@ -91,12 +100,9 @@ l <- foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.tab
   
   # Calculate kernelUD areas
  # KUDs <- adehabitatHR::kernelUD (spdf, same4all = T, h = "href")
-  KUDs <- adehabitatHR::kernelUD (spdf, grid = xy, h = "href")
-  
   #KUDs@h
-  #h_val/100
   
-  #KUDs <- adehabitatHR::kernelUD (spdf, h = h_val/100, grid = xy)
+  KUDs <- adehabitatHR::kernelUD (spdf, grid = xy, h = h_val)
   
   plot(KUDs)
   
@@ -105,7 +111,7 @@ l <- foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.tab
   ver <- adehabitatHR::getverticeshr(KUDs, perc_KUD)
 
   # check it
-  plot(ver, add=TRUE, col = "white")
+  #plot(ver, add=TRUE, col = "white")
   
   ########
   #Step 3#
@@ -126,8 +132,8 @@ l <- foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.tab
   crop <- rgeos::gDifference(ver, land, byid=TRUE)
 
   # check it
-  plot(ver, col = "red")
-  plot(crop, col="blue", add = T)
+  #plot(ver, col = "red")
+  #plot(crop, col="blue", add = T)
   
   crop
   }
@@ -148,14 +154,14 @@ plot(CaboVerde)
 # merge both kernels from Canary Is population
 
 canaryPop_colony1 <- l[[3]]
-plot(canaryPop_colony1)
+#plot(canaryPop_colony1)
 
 canaryPop_colony2 <- l[[4]]
-plot(canaryPop_colony2, add =T)
+#plot(canaryPop_colony2, add =T)
 
 CanaryIs <-union(canaryPop_colony1, canaryPop_colony2)
 CanaryIs <- aggregate(CanaryIs, dissolve = TRUE)
-plot(CanaryIs)
+#plot(CanaryIs)
 
 ########
 #Step 5#

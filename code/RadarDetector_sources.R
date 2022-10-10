@@ -7,10 +7,10 @@ pacman::p_load("plyr", "purrr", "ggplot2", "stringr", "lubridate","readxl", "tid
 
 # to manipulate track data
 pacman::p_load("maptools", "rgdal", "sf", "fossil", "track2KBA", "bcpa", "scales", 
-               "adehabitatLT", "rnaturalearth", "marmap", "terra", "adehabitatHR", "rgeos", "track2KBA")
+               "adehabitatLT", "rnaturalearth", "marmap", "terra", "adehabitatHR", "rgeos", "track2KBA", "fields")
 
 # to perform and plot GAMM models
-pacman::p_load("MuMIn", "gamm4", "PresenceAbsence", "broom", "ggeffects")
+pacman::p_load("MuMIn", "gamm4", "PresenceAbsence", "broom", "ggeffects", "groupdata2", "xpectr")
 
 # to parallelize
 pacman::p_load("parallel", "doParallel", "foreach")
