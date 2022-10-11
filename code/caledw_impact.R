@@ -12,6 +12,10 @@
 # Breeding success
 d <- readr::read_csv2(paste0(WD,"GitData/Bird-borne-radar-detection/input/CurralVelho2019Impact/ImpactNEST_toR.csv"))
 
+table(d$Nest_type)
+
+d <- d %>% dplyr::filter(Nest_type != "Control")
+
 test <- chisq.test(table(d$Nest_type, d$Nest_Succ))
 
 #If a warning such as “Chi-squared approximation may be incorrect” appears, it means that the smallest expected frequencies is lower than 5. To avoid this issue, you can use the Fisher’s exact test
