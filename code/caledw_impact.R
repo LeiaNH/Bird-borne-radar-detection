@@ -1,41 +1,239 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Steps:
-# 1. Breeding success test
+# 1. Breeding success test for incubation period
+# 2. Breeding success test for all breeding period
 # 2. Trip duration
 # 3. Weight difference
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+
+# load deployments data of breeders
+deployments <- readxl::read_excel("D:/Dropbox/GitData/Bird-borne-radar-detection/input/CurralVelho2019Impact/CALEDW_Impact.xlsx", sheet = "deployments") %>%
+  dplyr::filter(
+    # Filter deployments replaced
+    RemovedLNH == 0,
+    # Remove non-breeders
+    Breeding_phase != 4) %>%
+  dplyr::select(-c(RemovedLNH, TAG_model))
+
+# load b success data
+bsuccess <- readxl::read_excel("D:/Dropbox/GitData/Bird-borne-radar-detection/input/CurralVelho2019Impact/CALEDW_Impact.xlsx", sheet = "bsuccess") %>%
+  dplyr::select(Burrow, EggSuccLNH, ChickSuccLNH, NaturalChickDeath)
+
+# merge both data
+d <- merge(bsuccess, deployments, by = "Burrow", all.x = T)
 
 ########
 #Step 1#
 ########
 
-# Breeding success
-d <- readr::read_csv2(paste0(WD,"GitData/Bird-borne-radar-detection/input/CurralVelho2019Impact/ImpactNEST_toR.csv"))
+# ~~~~~~~~~~~~~~~~~~~~~~
+# For Incubation period
+# ~~~~~~~~~~~~~~~~~~~~~~
 
-table(d$Nest_type)
+# filter incubation period and control nests (where individual type is equal to NA)
+bs <- d %>%
+  dplyr::filter(
+    Breeding_phase == 2 | is.na(Individual_type))
 
-d <- d %>% dplyr::filter(Nest_type != "Control")
+# Select those Burrows that were at least once radar burrow
+RadarBurrows <- bs %>%
+  dplyr::filter(Individual_type == "Radar") %>%
+  dplyr::select(Burrow) %>%
+  distinct() %>%
+  dplyr::mutate(Burrow_type = "Radar")
 
-test <- chisq.test(table(d$Nest_type, d$Nest_Succ))
+# Merge inFo
+bs <- merge(bs, RadarBurrows, by = "Burrow", all.x = TRUE)
 
-#If a warning such as “Chi-squared approximation may be incorrect” appears, it means that the smallest expected frequencies is lower than 5. To avoid this issue, you can use the Fisher’s exact test
+# Complete other burrow types
+bs <- bs %>%
+  dplyr::mutate(
+    Burrow_type = case_when(Burrow_type == "Radar" ~ "Radar",
+                   is.na(Individual_type) ~ "Control",
+                   TRUE ~ "CatAxy")) 
 
-test <- fisher.test(table(d$Nest_type, d$Nest_Succ))
+# Select desired vars
+bs <- bs %>%
+  dplyr::select(Burrow_type, Burrow, EggSuccLNH) %>%
+  distinct()
+
+# Check if any egg did not hatch because of natural reasons
+
+# parse to categorical 
+bs$Burrow_type = as.factor(bs$Burrow_type)
+bs$EggSuccLNH = as.factor(bs$EggSuccLNH)
+
+# sample size
+table(bs$Burrow_type)
+
+# Chi2
+test <- chisq.test(table(bs$Burrow_type, bs$EggSuccLNH))
+
+#If a warning such as “Chi-squared approximation may be incorrect” appears, it means that the smallest expected frequencies is lower than 5. 
+table(bs$Burrow_type, bs$EggSuccLNH)
+
+#to avoid this issue, you can use the Fisher’s exact test
+
+test <- fisher.test(table(bs$Burrow_type, bs$EggSuccLNH))
+
+test
+
+
 
 ########
 #Step 2#
 ########
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~
+# For all breeding period
+# ~~~~~~~~~~~~~~~~~~~~~~~~
+
+# filter incubation period and control nests (where individual type is equal to NA)
+bs <- d %>%
+  dplyr::filter(
+    Breeding_phase == 2 | is.na(Individual_type) | Breeding_phase == 3)
+
+# Select those Burrows that were at least once radar burrow
+RadarBurrows <- bs %>%
+  dplyr::filter(Individual_type == "Radar") %>%
+  dplyr::select(Burrow) %>%
+  distinct() %>%
+  dplyr::mutate(Burrow_type = "Radar")
+
+# Merge info
+bs <- merge(bs, RadarBurrows, by = "Burrow", all.x = TRUE)
+
+# Complete other burrow types
+bs <- bs %>%
+  dplyr::mutate(
+    Burrow_type = case_when(Burrow_type == "Radar" ~ "Radar",
+                            is.na(Individual_type) ~ "Control",
+                            TRUE ~ "CatAxy")) 
+
+# Select desired vars
+bs <- bs %>%
+  dplyr::select(Burrow_type, Burrow, ChickSuccLNH, NaturalChickDeath) %>%
+  distinct()
+
+# Check if any chick did not succed because of natural reasons
+
+bs %>%
+  dplyr::filter(!is.na(NaturalChickDeath)) %>%
+  group_by(Burrow_type) %>%
+  summarize(
+    burrows = n()
+  )
+
+bs <- bs %>%
+  dplyr::filter(is.na(NaturalChickDeath))
+
+# parse to categorical 
+bs$Burrow_type = as.factor(bs$Burrow_type)
+bs$ChickSuccLNH = as.factor(bs$ChickSuccLNH)
+
+# sample size
+table(bs$Burrow_type)
+
+# Chi2
+test <- chisq.test(table(bs$Burrow_type, bs$ChickSuccLNH))
+test
+
+#If a warning such as “Chi-squared approximation may be incorrect” appears, it means that the smallest expected frequencies is lower than 5. 
+table(bs$Burrow_type, bs$ChickSuccLNH)
+
+#to avoid this issue, you can use the Fisher’s exact test
+
+test <- fisher.test(table(bs$Burrow_type, bs$ChickSuccLNH))
+
+test
+
+########
+#Step 3#
+########
+
+# weight loss
+
+replacements <- readxl::read_excel("D:/Dropbox/GitData/Bird-borne-radar-detection/input/CurralVelho2019Impact/CALEDW_Impact.xlsx", sheet = "deployments") %>%
+  dplyr::filter(
+    # Filter deployments removed
+    RemovedLNH == 1) %>%
+  # remove birds that were not weighted after that
+  drop_na(Bodymass_after) %>%
+  dplyr::mutate(
+    #calculate number of days between manipulations
+    diffDays = as.numeric(difftime(Recovery_Date, Deployment_Date)),
+    #calculate diff weight
+    diffBM = Bodymass_before - Bodymass_after,
+    #calculate weight loss per day
+    BMlost = diffBM/diffDays) %>%
+  #summarize mean and sd
+  summarize(
+    median = median(BMlost),
+    mean = mean(BMlost),
+    sd = sd(BMlost),
+    n = n()
+  )
+
+BDlost = replacements$median
+
+# BM gain/lost 
+
+bm <- d %>%
+  # filter incubation period
+  dplyr::filter(
+    Breeding_phase == 2,
+    LostLNH == 0) %>%
+  # calculate weight departure corrected
+  dplyr::mutate(
+    Bodymass_before_corr = if_else(
+      Departure_Date == 0,
+      Bodymass_before,
+      Bodymass_before - BDlost*Departure_Date
+    )
+    )
+
+# recalculate the percentage of the tag for radar individuals
+
+weightINC <- bm %>%
+  dplyr::filter(Individual_type == "Radar") %>%
+  dplyr::mutate(
+    percent = (20/Bodymass_before_corr)*100) %>%
+  pull(percent)
+
+weightCR <- d %>%
+  dplyr::filter(Individual_type == "Radar") %>%
+  # filter incubation period
+  dplyr::filter(
+    Breeding_phase == 3) %>%
+  dplyr::mutate(
+  percent = (20/Bodymass_before)*100) %>%
+  pull()
+    
+weigth <- c(weightINC,weightCR)   
+
+mean(weigth)
+sd(weigth)
+max(weigth)
+
+#it's the same as before 
+
 library(lmerTest)
 
-d <- readr::read_csv2(paste0(WD,"GitData/Bird-borne-radar-detection/input/CurralVelho2019Impact/ImpactGPSINC_toR.csv")) %>% drop_na()
 
-d %>% janitor::get_dupes(Ring)
+bm$Ring = as.factor(bm$Ring)
+bm$Individual_type = as.factor(bm$Individual_type)
 
-d$Ring = as.factor(d$Ring)
-d$Individual_type = as.factor(d$Individual_type)
 
-m1 <- glmer(Diffdays ~ Individual_type + (1|Ring), family = poisson, data = d)
+# calculate diffdays and model it
+days <- bm %>%
+  dplyr::mutate(
+    Diffdays = as.numeric(difftime(Recovery_Date, Last_Date_Nest, units = "days"))
+  )
+
+ggplot(days, aes(y=Diffdays, x=Individual_type )) + geom_boxplot()
+
+m1 <- glmer(Diffdays ~ Individual_type + (1|Ring), family = poisson, data = days)
 
 summary(m1)
 
@@ -52,19 +250,21 @@ print(sim_treat_m1)
 summary(sim_treat_m1)
 
 ########
-#Step 3#
+#Step 4#
 ########
 
 library(lmerTest)
 
-d <- readr::read_csv2(paste0(WD,"GitData/Bird-borne-radar-detection/input/CurralVelho2019Impact/ImpactGPSINC_toR.csv")) %>% drop_na() %>%
-  dplyr::mutate(logDiffBodymass = log10(DiffBodymass))
+bm <- bm %>%
+  dplyr::mutate(
+    Diffmass = Bodymass_after - Bodymass_before_corr)
+  
+bm$Ring = as.factor(bm$Ring)
+bm$Individual_type = as.factor(bm$Individual_type)
 
-d$Ring = as.factor(d$Ring)
-d$Individual_type = as.factor(d$Individual_type)
+ggplot(bm, aes(y=Diffmass, x=Individual_type )) + geom_boxplot()
 
-
-m2 <- lmer(DiffBodymass ~ Individual_type + (1|Ring), data = d)
+m2 <- lmer(Diffmass ~ Individual_type + (1|Ring), data = bm)
 
 summary(m2)
 

@@ -413,6 +413,18 @@ k_value = 5
 
 # Run code #
 source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_hourlybins_GAMM_sz.R"))
+
+#### CALEDW impact  ####------------------------------
+
+# Description #
+# We checked several aspects regarding which impact might had the deployment of radar tags on the lighter sp from this study
+
+# Output data #
+# chi2 and mixed models
+
+# Run code #
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/caledw_impact.R"))
+
 #---------------------------------------------------------------
 # 6. Main Figures
 #---------------------------------------------------------------
