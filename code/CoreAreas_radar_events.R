@@ -1,10 +1,3 @@
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# Steps:
-# 1. read radar events files 
-# 2. read core areas
-# 3. Overlap radar events per core area per population
-# 4. sz
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 ########
 #Step 1#
@@ -156,3 +149,6 @@ sz <- sz %>%
 sz
 
 fwrite(sz, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/tables/corearea_radarevents_sz.csv"),row.names=FALSE)
+
+
+

@@ -10,12 +10,12 @@
 ########
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*events_radar_GFWovr_L4.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*events_radar_GFWovr_L4.csv", recursive = TRUE)
 
 # Read all files
 RAD <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 ########
 
@@ -140,7 +140,7 @@ sz1 <- sz%>%
   dplyr::mutate(perc_absenceNA = round((NAs /absence)*100,1))
 
 # write dataset
-fwrite(sz1, file=paste0(WD,"/output/tables/radarevents_dailyGFW_sz.csv"),row.names=FALSE)
+fwrite(sz1, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/tables/radarevents_dailyGFW_sz.csv"),row.names=FALSE)
 
 head(sz1)
 
@@ -175,7 +175,7 @@ sz2 <-  sz2 %>%
   dplyr::select(population, trawl_perc, purse_perc, longlines_perc, others_perc)
 
 # write dataset
-fwrite(sz2, file=paste0(WD,"/output/tables/radarevents_dailyGFW_geartype_sz.csv"),row.names=FALSE)
+fwrite(sz2, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/tables/radarevents_dailyGFW_geartype_sz.csv"),row.names=FALSE)
 
 ########
 #Step 3#
@@ -205,7 +205,7 @@ sz1 <- sz%>%
   dplyr::mutate(perc_absenceNA = round((NAs /absence)*100,1))
 
 # write dataset
-fwrite(sz1, file=paste0(WD,"/output/tables/radardetections_dailyGFW_sz.csv"),row.names=FALSE)
+fwrite(sz1, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/tables/radardetections_dailyGFW_sz.csv"),row.names=FALSE)
 
 head(sz1)
 
@@ -233,4 +233,4 @@ sz2 <-  sz2 %>%
   dplyr::select(population, trawl_perc, purse_perc, longlines_perc, others_perc)
 
 # write dataset
-fwrite(sz2, file=paste0(WD,"/output/tables/radardetections_dailyGFW_geartype_sz.csv"),row.names=FALSE)
+fwrite(sz2, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/tables/radardetections_dailyGFW_geartype_sz.csv"),row.names=FALSE)

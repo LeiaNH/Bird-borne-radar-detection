@@ -10,12 +10,12 @@
 ########
 
 # List L3.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*events_radar_L3.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*events_radar_L3.csv", recursive = TRUE)
 
 # Read all files
 RAD <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 ########
 #Step 2#
@@ -36,7 +36,7 @@ registerDoParallel(cl)
 # Parallel foreach loop #
 #-----------------------#
 
-foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.table", "lubridate", "purrr", "raster", "terra")) %dopar% {
+foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.table", "lubridate", "purrr", "raster", "terra", "exactextractr")) %dopar% {
  
   # i=1
   print(i)
@@ -72,7 +72,7 @@ foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.table", 
     
     # read mmsi data
     fleet <- map_dfr(
-      paste0(WD,"input/GFW/fleet-daily-csvs-100-v2/fleet-daily-csvs-100-v2-", 
+      paste0(WD,"GitData/Bird-borne-radar-detection/input/GFW/fleet-daily-csvs-100-v2/fleet-daily-csvs-100-v2-", 
              radar_loc$year, "/",
              as.Date(ymd_hms(radar_loc$time)), ".csv"), 
       .f = read_csv) 
@@ -196,7 +196,7 @@ foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.table", 
   ########
   
   # write dataset
-  fwrite(output_match, file=paste0(WD,"/output/",colonysites[i],"_events_radar_GFWovr_L4.csv"),row.names=FALSE)
+  fwrite(output_match, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/",colonysites[i],"_events_radar_GFWovr_L4.csv"),row.names=FALSE)
   
  }
   

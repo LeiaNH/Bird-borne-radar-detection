@@ -11,12 +11,12 @@
 ########
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*HourlyBins_radar_evaluation.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*HourlyBins_radar_evaluation.csv", recursive = TRUE)
 
 # Read all files
 RAD <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) %>%
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) %>%
   # create unique radar events identification
   dplyr::mutate(
     population = recode(colonyName, 
@@ -47,12 +47,12 @@ quantiles <-  RAD %>%
 ########
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*unreportedGFW_evaluation.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*unreportedGFW_evaluation.csv", recursive = TRUE)
 
 # Read all files
 RAD <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) %>%
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) %>%
   # create unique radar events identification
   dplyr::mutate(
     population = recode(colonyName, 
@@ -175,30 +175,30 @@ bath <- marmap::getNOAA.bathy(
   resolution = 4)
 
 # load worldmap as sf
-load(paste0(WD, "input/valid_world_map.Rdata"))
+load(paste0(WD, "GitData/Bird-borne-radar-detection/input/valid_world_map.Rdata"))
 msk_valid %>% 
   dplyr::select(Name) -> msk_sf  
 
 rm(msk_valid)
 
 # Loading colonies
-c <- read.csv2(paste0(WD,"input/colonysites.csv"))
+c <- read.csv2(paste0(WD,"GitData/Bird-borne-radar-detection/input/colonysites.csv"))
 
 # Loading EEZ data
-eezs <- read_sf(paste0(WD,"input/EEZ_land_union_v3_202003/EEZ_Land_v3_202030.shp")) 
+eezs <- read_sf(paste0(WD,"GitData/Bird-borne-radar-detection/input/EEZ_land_union_v3_202003/EEZ_Land_v3_202030.shp")) 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Mean Non-Fishing traffic #
 # ~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 # List _sAISnonfishing.tif extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*_sAISnonfishing.tif", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*_sAISnonfishing.tif", recursive = TRUE)
 
-r1 <- raster::raster(paste0(WD,"output/",files[1]))
+r1 <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/output/",files[1]))
 ##x11();plot(r1, xlim=c(-25,5),ylim=c(14,43))
-r2 <- raster::raster(paste0(WD,"output/",files[2]))
+r2 <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/output/",files[2]))
 ##x11();plot(r2, xlim=c(-25,5),ylim=c(14,43))
-r3 <- raster::raster(paste0(WD,"output/",files[3]))
+r3 <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/output/",files[3]))
 ##x11();plot(r3, xlim=c(-25,5),ylim=c(14,43))
 
 # mean of all rasters
@@ -213,17 +213,17 @@ nonfishves <- mean(r1, r2, r3, na.rm = T)
 ext <- raster::extent(-40,15,8,50)
 
 # List _GFW_NavigationHours.tif extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*_GFW_FishingHours.tif", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*_GFW_FishingHours.tif", recursive = TRUE)
 
-r1 <- raster::raster(paste0(WD,"output/",files[1]))
+r1 <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/output/",files[1]))
 r1 <- crop(r1,ext)
 ##x11();plot(r1)
 
-r2 <- raster::raster(paste0(WD,"output/",files[2]))
+r2 <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/output/",files[2]))
 r2 <- crop(r2,ext)
 ##x11();plot(r2)
 
-r3 <- raster::raster(paste0(WD,"output/",files[3]))
+r3 <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/output/",files[3]))
 r3 <- crop(r3,ext)
 ##x11();plot(r1)
 
@@ -963,7 +963,7 @@ composite <- ggpubr::ggarrange(
   common.legend = F)
 ##x11();composite
 
-setwd(paste0(WD,"output/figures"))
+setwd(paste0(WD,"GitData/Bird-borne-radar-detection/output/figures"))
 
 Cairo::Cairo(file = "GFW0.png",
              type = "png",
@@ -989,7 +989,7 @@ legends=ggpubr::ggarrange(blankPlot,
                           legAIS, 
                           ncol=1,nrow=2)
 
-setwd(paste0(WD,"output/figures"))
+setwd(paste0(WD,"GitData/Bird-borne-radar-detection/output/figures"))
 
 Cairo::Cairo(file = "leg.png",
              type = "png",

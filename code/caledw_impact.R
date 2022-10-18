@@ -235,6 +235,7 @@ ggplot(days, aes(y=Diffdays, x=Individual_type )) + geom_boxplot()
 
 m1 <- glmer(Diffdays ~ Individual_type + (1|Ring), family = poisson, data = days)
 
+# provar sense alguna anella repetida
 summary(m1)
 
 #performance
@@ -245,9 +246,39 @@ performance::check_model(m1)
 #performance::check_heteroscedasticity(m1)
 performance::check_singularity(m1)
 #power test
-sim_treat_m1 <- simr::powerSim(m1, nsim=1000, seed=25)
-print(sim_treat_m1)
-summary(sim_treat_m1)
+#sim_treat_m1 <- simr::powerSim(m1, nsim=1000, seed=25)
+#print(sim_treat_m1)
+#summary(sim_treat_m1)
+
+# try to solve singularity 
+days %>% janitor::get_dupes(Ring)
+
+rings <- unique(days$Ring)
+
+l <- list()
+for (i in 1:length(rings)){
+  print(i)
+  #i=3
+  ring <- days %>%
+    dplyr::filter(Ring == rings[[i]])
+  
+  if(nrow(ring)>1){
+    if("Radar" %in% unique(ring$Individual_type)){
+      ring <- ring %>% dplyr::filter(Individual_type == "Radar") %>% slice_sample(n = 1)
+    }else{
+      ring <- ring %>% slice_sample(n = 1)
+    }
+  }
+  
+  l[i] <- list(ring)
+  }
+
+days <- do.call(rbind, l)
+
+days %>% janitor::get_dupes(Ring)
+
+m1 <- glmer(Diffdays ~ Individual_type + (1|Ring), family = poisson, data = days)
+
 
 ########
 #Step 4#
@@ -257,14 +288,23 @@ library(lmerTest)
 
 bm <- bm %>%
   dplyr::mutate(
-    Diffmass = Bodymass_after - Bodymass_before_corr)
+    Diffmass = Bodymass_after - Bodymass_before_corr,
+    Percentdiffmass = (Diffmass/Bodymass_before_corr)*100) 
   
+#How many cannot do it?
+table(is.na(bm$Percentdiffmass))
+
+#Let's remove them
+bm <- bm %>% drop_na(Percentdiffmass)
+
 bm$Ring = as.factor(bm$Ring)
 bm$Individual_type = as.factor(bm$Individual_type)
 
-ggplot(bm, aes(y=Diffmass, x=Individual_type )) + geom_boxplot()
+ggplot(bm, aes(y=Diffmass, x=Individual_type )) + geom_boxplot() + geom_point()
+ggplot(bm, aes(y=Percentdiffmass, x=Individual_type )) + geom_boxplot() + geom_point()
 
 m2 <- lmer(Diffmass ~ Individual_type + (1|Ring), data = bm)
+m2 <- lmer(Percentdiffmass ~ Individual_type + (1|Ring), data = bm)
 
 summary(m2)
 
@@ -276,5 +316,31 @@ performance::check_normality(m2)
 performance::check_heteroscedasticity(m2)
 performance::check_singularity(m2)
 #power test
-sim_treat_m2 <- simr::powerSim(m2, nsim=1000, seed=25)
-print(sim_treat_m2)
+#sim_treat_m2 <- simr::powerSim(m2, nsim=1000, seed=25)
+#print(sim_treat_m2)
+
+# try to solve singularity 
+bm %>% janitor::get_dupes(Ring)
+
+rings <- unique(bm$Ring)
+
+l <- list()
+for (i in 1:length(rings)){
+  print(i)
+  #i=3
+  ring <- bm %>%
+    dplyr::filter(Ring == rings[[i]])
+  
+  if(nrow(ring)>1){
+    if("Radar" %in% unique(ring$Individual_type)){
+      ring <- ring %>% dplyr::filter(Individual_type == "Radar") %>% slice_sample(n = 1)
+    }else{
+      ring <- ring %>% slice_sample(n = 1)
+    }
+  }
+  
+  l[i] <- list(ring)
+}
+
+bm <- do.call(rbind, l)
+

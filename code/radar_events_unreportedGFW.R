@@ -11,12 +11,12 @@
 ########
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*events_radar_GFWovr_L4.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*events_radar_GFWovr_L4.csv", recursive = TRUE)
 
 # Read all files
 RAD <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 # Filter radar events that did not overlap with GFW datasets
 # RAD <- RAD %>%
@@ -37,7 +37,7 @@ effort_months <- RAD %>%
 
 
 # effort months available
-sAIS_months <- list.files(path = paste0(WD, "input/sAIS")) 
+sAIS_months <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/input/sAIS")) 
 
 # filter months that coincide with radar data
 effort_months <- effort_months[effort_months %in% sAIS_months]
@@ -129,11 +129,11 @@ foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.table", 
     # Fishing vessel data #
     # ~~~~~~~~~~~~~~~~~~~ #
     
-    fishing <- raster::raster(paste0(WD,"output/",radar_loc$date[1],"_GFW_NavigationHours.tif"))
+    fishing <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/output/",radar_loc$date[1],"_GFW_NavigationHours.tif"))
     
     navigation_hours_sum <- exactextractr::exact_extract(fishing[[1]], dissolve_sf, 'sum')
     
-    fishing <- raster::raster(paste0(WD,"output/",radar_loc$date[1],"_GFW_FishingHours.tif"))
+    fishing <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/output/",radar_loc$date[1],"_GFW_FishingHours.tif"))
     
     fishing_sum <- exactextractr::exact_extract(fishing[[1]], dissolve_sf, 'sum')
     
@@ -141,7 +141,7 @@ foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.table", 
     # Non-fishing vessel data #
     # ~~~~~~~~~~~~~~~~~~~~~~~ #
     
-    nonfishing <- raster::raster(paste0(WD,"output/",radar_loc$date[1],"_sAISnonfishing.tif"))
+    nonfishing <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/output/",radar_loc$date[1],"_sAISnonfishing.tif"))
     
     nonfishing_sum <- exactextractr::exact_extract(nonfishing[[1]], dissolve_sf, 'sum')
     
@@ -149,7 +149,7 @@ foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.table", 
     # Domestic vessel data #
     # ~~~~~~~~~~~~~~~~~~~~ #
     
-    domestic <- raster::raster(paste0(WD,"output/",radar_loc$date[1],"_sAISdomestic.tif"))
+    domestic <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/output/",radar_loc$date[1],"_sAISdomestic.tif"))
     
     domestic_sum <- exactextractr::exact_extract(domestic[[1]], dissolve_sf, 'sum')
     
@@ -157,7 +157,7 @@ foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.table", 
     # Others vessel data #
     # ~~~~~~~~~~~~~~~~~~ #
     
-    other <- raster::raster(paste0(WD,"input/sAIS/",radar_loc$date[1],"/",radar_loc$date[1],"_OTHER_dens.tif"))
+    other <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/input/sAIS/",radar_loc$date[1],"/",radar_loc$date[1],"_OTHER_dens.tif"))
     
     other_sum <- exactextractr::exact_extract(other[[1]], dissolve_sf, 'sum')
     
@@ -181,7 +181,7 @@ foreach(i=1:length(colonysites), .packages=c("dplyr" ,"tidyverse","data.table", 
   ########
   
   # write dataset
-  fwrite(final_output, file=paste0(WD,"/output/",colonysites[i],"_events_radar_unreportedGFW_evaluation.csv"),row.names=FALSE)
+  fwrite(final_output, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/",colonysites[i],"_events_radar_unreportedGFW_evaluation.csv"),row.names=FALSE)
   
   }
   

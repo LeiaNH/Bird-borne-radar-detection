@@ -39,6 +39,16 @@ cols_colony <- scale_colour_manual(name="colonyName",
                                             "Veneguera"= "Veneguera",
                                             "CVelho"= "Curral Velho"))
 
+fills_colony <- scale_fill_manual(name="colonyName",
+                                   values = c("CalaMorell"= "#0072B2",
+                                              "MClara"= "#E69F00",
+                                              "Veneguera"= "#D55E00",
+                                              "CVelho"= "#009E73"), 
+                                   labels = c("CalaMorell"= "Cala Morell",
+                                              "MClara"= "Montaña Clara",
+                                              "Veneguera"= "Veneguera",
+                                              "CVelho"= "Curral Velho"))
+
 cols_pop <- scale_colour_manual(name="colonyName",
                                    values = c("BalearicIs"= "#0072B2",
                                               "CanaryIs"= "#f5c014",
@@ -213,7 +223,7 @@ source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/code/radar_hourlybi
 # Set parameters#
 
 # time threshold criteria to split radar events into segments, in hours
-radarID_v = 1
+radarID_v = 16/60 # originally was 1 hour
 
 # Run code #
 source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_events.R"))
@@ -550,4 +560,18 @@ source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/modelset_table.R"))
 
 # Cleaning environment #
 gdata::keep(place, WD, sure = TRUE)
+
+#### SM sample size table ####
+
+# Description #
+# Summary table with the organism ID, deployment and recovery date, breeding phase, sex, n trips recorded, n radar detections within and outside foraging grounds. Reviewer's suggestion
+
+# Output data #
+# xxx.csv
+
+# Run code #
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/SM_prep_table.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/SM_table.R"))
+
+
 

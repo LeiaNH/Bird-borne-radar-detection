@@ -260,8 +260,7 @@ p1 <- ggplot() +
     size = 3.5+1
   )
 
-#x11()
-#plot(p1)
+#x11();plot(p1)
 
 # ~~~~~~~~~~~~~~ #
 # population = 2 #

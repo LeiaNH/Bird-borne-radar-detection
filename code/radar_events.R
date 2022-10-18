@@ -87,12 +87,22 @@ for (i in seq_along(colonysites)){
     dplyr::filter(colonyName == colony)
   
   # write dataset
-  fwrite(radar_group, file=paste0(WD,"GitData/Bird-borne-radar-detection//output/",colonysites[i],"_events_radar_L3.csv"),row.names=FALSE)}
+  fwrite(radar_group, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/",colonysites[i],"_events_radar_L3.csv"),row.names=FALSE)}
 
 
 ########
 #Step 4#
 ########
+
+# Loading colonies
+c <- read.csv2(paste0(WD,"GitData/Bird-borne-radar-detection/input/colonysites.csv"))
+
+# load worldmap as sf
+load(paste0(WD, "GitData/Bird-borne-radar-detection/input/valid_world_map.Rdata"))
+msk_valid %>% 
+  dplyr::select(Name) -> msk_sf  
+
+rm(msk_valid)
 
 #-----------------#
 # Prepare cluster #
@@ -175,10 +185,15 @@ foreach(i=1:length(colonysites), .packages=c("dplyr" ,"sf","gridExtra", "tidyver
   
   plotlist_f <- flatten(plotlist)
   
-  setwd(paste0(WD,"GitData/Bird-borne-radar-detection//output/plots/"))
+  setwd(paste0(WD,"GitData/Bird-borne-radar-detection/output/plots/"))
   ggsave(
     filename = paste0("radarevents_",colonysites[i],"_L3.pdf"), 
     plot = gridExtra::marrangeGrob(grobs=plotlist_f, nrow=4, ncol=2), 
     width = 9, height = 15)
   
 }
+
+#---------------------------------------------------------------
+# Stop cluster
+#---------------------------------------------------------------
+stopCluster(cl)   
