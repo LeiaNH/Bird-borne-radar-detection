@@ -17,6 +17,59 @@ RAD <- files %>%
   # read in all the files, appending the path before the filename
   map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
+# Number of trips with radar events
+RAD %>%
+  mutate(population = recode(colonyName, 
+                             "CalaMorell" = "BalearicIs",
+                             "CVelho" = "CaboVerde",
+                             "MClara" = "CanaryIs",
+                             "Veneguera" = "CanaryIs")) %>%
+  group_by(population) %>%
+  summarize(
+    n = length(unique(na.omit(tripID)))
+  )
+
+# Number of radar events per population
+RAD %>%
+  mutate(population = recode(colonyName, 
+                             "CalaMorell" = "BalearicIs",
+                             "CVelho" = "CaboVerde",
+                             "MClara" = "CanaryIs",
+                             "Veneguera" = "CanaryIs"),
+         radarID2 = paste0(tripID, "_", radarID)) %>%
+  group_by(population) %>%
+  summarize(
+    n = length(unique(na.omit(radarID2)))
+  )
+
+# Number of radar events per population overlapping with GFW
+(kk <- RAD %>%
+  filter(GFWovr == "1" ) %>%
+  mutate(population = recode(colonyName, 
+                             "CalaMorell" = "BalearicIs",
+                             "CVelho" = "CaboVerde",
+                             "MClara" = "CanaryIs",
+                             "Veneguera" = "CanaryIs"),
+         radarID2 = paste0(tripID, "_", radarID)) %>%
+  group_by(population) %>%
+  summarize(
+    n = length(unique(na.omit(radarID2)))
+  ))
+
+# Number of radar events per population NOT overlapping with GFW
+(kk<-RAD %>%
+  filter(GFWovr == "0" ) %>%
+  mutate(population = recode(colonyName, 
+                             "CalaMorell" = "BalearicIs",
+                             "CVelho" = "CaboVerde",
+                             "MClara" = "CanaryIs",
+                             "Veneguera" = "CanaryIs"),
+         radarID2 = paste0(tripID, "_", radarID)) %>%
+  group_by(population) %>%
+  summarize(
+    n = length(unique(na.omit(radarID2)))
+  ))
+  
 ########
 
 flags <- RAD %>%
@@ -89,6 +142,13 @@ flags$population <- factor(flags$population,      # Reordering group factor leve
 ggplot(flags, aes(x=country, y=Count, fill=colonyName)) + geom_col() + fills_colony + theme_bw() + facet_grid(~population) +coord_flip()+
   ylab("Number of Radar events") + xlab("Vessel Flag")
 
+
+total <- flags %>%
+  group_by(population) %>%
+  summarize(n=sum(Count))
+
+flags2 = merge(flags, total, by="population")
+
 ########
 #Step 2#
 ########
@@ -160,6 +220,8 @@ sz2 <- sz %>%
     purse = sum(purse),
     longlines = sum(longlines),
     others = sum(others))
+
+sz2
 
 sz1 <- sz1 %>% dplyr::select(population, presence)  
 
@@ -234,3 +296,4 @@ sz2 <-  sz2 %>%
 
 # write dataset
 fwrite(sz2, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/tables/radardetections_dailyGFW_geartype_sz.csv"),row.names=FALSE)
+

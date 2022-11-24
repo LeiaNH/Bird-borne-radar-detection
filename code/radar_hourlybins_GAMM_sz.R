@@ -10,36 +10,36 @@
 ########
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*_gamm_models.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*_gamm_models.csv", recursive = TRUE)
 
 # Read all files
 models_sz <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) %>%
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) %>%
   # group by per population
   group_by(population) %>%
   # filter lowest AIC
-  slice(which.min(AICc))
+  slice(which.min(AIC))
 
 ########
 #Step 2#
 ########
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*HourlyBins_radar_evaluation.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*HourlyBins_radar_evaluation.csv", recursive = TRUE)
 
 # Read all files
 RAD <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*HourlyBins_radar_evaluation.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*HourlyBins_radar_evaluation.csv", recursive = TRUE)
 
 # Read all files
 RAD <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 # explore NAs
 visdat::vis_dat(RAD)
@@ -187,7 +187,7 @@ for (i in seq_along(populations)) {
   # save AUC results
   Fit <- accu %>%
     mutate(
-      AUC = paste(round(AUC,2),round(AUC.sd,3),sep="±")) %>%
+      AUC = paste(round(AUC,2),round(AUC.sd,3),sep="?")) %>%
     dplyr::select(AUC)
   
   # Save summary 
@@ -204,7 +204,7 @@ for (i in seq_along(populations)) {
   # AUC sz
   AUC <- accu %>%
     mutate(
-      AUC = paste(round(AUC,1),round(AUC.sd,3),sep="±")) %>%
+      AUC = paste(round(AUC,1),round(AUC.sd,3),sep="?")) %>%
     dplyr::select(AUC) %>%
     dplyr::mutate(Population = unique(radar_group$population))
   

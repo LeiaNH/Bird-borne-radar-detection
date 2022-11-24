@@ -1,13 +1,6 @@
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# Steps:
-# 1. read monthly AIS files and define marine traffic levels
-# 2. read and label radar locations not matching daily with GFW with marine traffic level
-# 3. plot it
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-
-########
-#Step 1#
-########
+#-----------------------------------------------
+# Step. Create a bounding box
+#-----------------------------------------------
 
 # read all radar events
 files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*trips_L2.csv", recursive = TRUE)
@@ -17,10 +10,67 @@ GPS <- files %>%
   map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 # define a bounding box
-minx <- min(GPS$longitude) 
-maxx <- max(GPS$longitude) 
-miny <- min(GPS$latitude) 
-maxy <- max(GPS$latitude) 
+GPS <- GPS %>%
+  dplyr::mutate(population = recode(colonyName, 
+                                    "CalaMorell" = "BalearicIs",
+                                    "CVelho" = "CaboVerde",
+                                    "MClara" = "CanaryIs",
+                                    "Veneguera" = "CanaryIs")) %>%
+
+  group_by(population) %>%
+  summarize(
+    minx= min(longitude),
+    maxx = max(longitude),
+    miny = min(latitude),
+    maxy = max(latitude)
+  )
+
+
+# box 1
+lon = c(GPS$minx[1], GPS$maxx[1])
+lat = c(GPS$miny[1], GPS$maxy[1])
+box1 = data.frame(lon, lat)
+
+box1 <- box1 %>% 
+  st_as_sf(coords = c("lon", "lat"), 
+           crs = 4326) %>% 
+  st_bbox() %>% 
+  st_as_sfc()
+
+# box 2
+lon = lon = c(GPS$minx[2], GPS$maxx[2])
+lat = c(GPS$miny[2], GPS$maxy[2])
+box2 = data.frame(lon, lat)
+
+box2 <- box2 %>% 
+  st_as_sf(coords = c("lon", "lat"), 
+           crs = 4326) %>% 
+  st_bbox() %>% 
+  st_as_sfc()
+
+# box 3
+lon = lon = c(GPS$minx[3], GPS$maxx[3])
+lat = c(GPS$miny[3], GPS$maxy[3])
+box3 = data.frame(lon, lat)
+
+box3 <- box3 %>% 
+  st_as_sf(coords = c("lon", "lat"), 
+           crs = 4326) %>% 
+  st_bbox() %>% 
+  st_as_sfc()
+
+# merge both boxes
+poly <- st_union(box1, box2, box3)
+
+# convert to spatial polygon (to use with point_on_land function)
+sarea <- as_Spatial(poly)
+
+plot(sarea)
+
+
+#-----------------------------------------------
+# Step. Filter months available for the analysis
+#-----------------------------------------------
 
 # List events_radar_GFWovr_L4 extention files
 files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*events_radar_GFWovr_L4.csv", recursive = TRUE)
@@ -53,7 +103,12 @@ length(effort_months)
 effort_months <- effort_months[effort_months %in% sAIS_months]
 length(effort_months)
 
+#-----------------------------------------------
+# Step. Identify confident limits values within the bounding box per month
+#-----------------------------------------------
+
 l <- list()
+
 for (i in seq_along(effort_months)){
   
   #i=1
@@ -64,35 +119,31 @@ for (i in seq_along(effort_months)){
   
   # read fishing monthly dataset
   raster <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/output/",date,"_GFW_FishingHours.tif"))
-  #plot(raster)
-  # subset bounding box
-  extent <- raster::extent(cbind(c(minx,miny), c(maxx,maxy)))
-  raster <- crop(raster, extent)
   plot(raster)
-  raster[raster==0] <- NA
-
-  # QUANTILES
-
-  df <- raster::as.data.frame(raster,xy=F) 
-  names(df) <- "value"
-  df <- df %>% drop_na(value) %>% filter(value >0)
   
+  # subset bounding box
+  raster = mask(raster,sarea)
+  plot(raster)
+  
+  # parse to dataframe
+  df <- raster::as.data.frame(raster, xy=F) 
+  names(df) <- "value"
+  
+  # filter values above 0
+  df <- df %>% drop_na(value) %>% filter(value >0)# %>%dplyr::mutate(value = round(value, 0)) %>% distinct()
+  
+  # log transform
   df$value <- log10(df$value)
   
+  # check normality
   ggqqplot(df$value)
-  hist(df$value)
-  
-  #q <- quantile(raster, probs = c(0.33, 0.66), na.rm = T, ncells= NULL)
-  # save data
-  #quantilesfishing <- tibble(
-  # date = date,
-  #  lowGFW = q[[1]],
-  #  highGFW = q[[2]])
-  
+
+  # identify confident limit values
   q <- quantile(df$value, probs = c(0.05,0.95))
   
+  # store values
   quantilesfishing <- tibble(
-   date = date,
+    date = date,
     lowGFWlog = q[[1]],
     highGFWlog = q[[2]])
   
@@ -100,82 +151,48 @@ for (i in seq_along(effort_months)){
   
   # read non-fishing monthly dataset
   raster <- raster::raster(paste0(WD,"GitData/Bird-borne-radar-detection/output/",date,"_sAISnonfishing.tif"))
-  #plot(raster)
-  # subset bounding box
-  extent <- raster::extent(cbind(c(minx,miny), c(maxx,maxy)))
-  raster <- crop(raster, extent)
   plot(raster)
-  # substract quartiles
-  raster[raster==0] <- NA
   
-  # QUANTILES
+  # subset bounding box
+  raster = mask(raster,sarea)
+  plot(raster)
   
-  df <- raster::as.data.frame(raster,xy=F) 
+  # parse to dataframe
+  df <- raster::as.data.frame(raster, xy=F) 
   names(df) <- "value"
+  
+  # filter values above 0
   df <- df %>% drop_na(value) %>% filter(value >0)
   
+  # log transform
   df$value <- log10(df$value)
   
+  # check normality
   ggqqplot(df$value)
-  hist(df$value)
   
-  #q <- quantile(raster, probs = c(0.25, 0.75), na.rm = T, ncells= NULL)
-  
-  # save data
-  #quantilesnonfishing <- tibble(
-  # lowAIS = q[[1]],
-  #  highAIS = q[[2]])
-  
+  # identify confident limit values
   q <- quantile(df$value, probs = c(0.05,0.95))
   
+  # store values
   quantilesnonfishing <- tibble(
     lowAISlog = q[[1]],
     highAISlog = q[[2]])
   
-  # merge
+  #--------- merge both data
   
   quantiles <- bind_cols(quantilesfishing, quantilesnonfishing)
-
+  
   l[i] <- list(quantiles)
-  }
+}
 
 quantiles <- do.call(bind_rows, l)
 
-#old step 1
 
-# List L2.csv extention files
-#files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*_events_radar_unreportedGFW_evaluation.csv", recursive = TRUE)
+#-----------------------------------------------
+# Step. Identify high low traffic in radar events data
+#-----------------------------------------------
 
-# Read all files
-#RAD <- files %>%
-  # read in all the files, appending the path before the filename
- # map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) %>%
-  # create unique radar events identification
-  #dplyr::mutate(
-  #  population = recode(colonyName, 
-                  #      "CalaMorell" = "BalearicIs",
-                   #     "CVelho" = "CaboVerde",
-                  #      "MClara" = "CanaryIs",
-                  #      "Veneguera" = "CanaryIs")) %>%
-  # parse NA values to 0
- # replace(is.na(.), 0) %>%
-  # remove 0
- #dplyr::filter(
-  # FishingHours_GFW > 0,
-  # NonFishing_sAIS > 0)
-
-#quantiles <-  RAD %>%
- # summarize(
-  #  lowGFW =  quantile(FishingHours_GFW, probs=0.25, na.rm=TRUE),
-   # lowAIS =  quantile(NonFishing_sAIS, probs=0.25, na.rm=TRUE),
-  #  highGFW =  quantile(FishingHours_GFW, probs=0.75, na.rm=TRUE),
-  #  highAIS =  quantile(NonFishing_sAIS, probs=0.75, na.rm=TRUE))
-
-########
-#Step 2#
-########
-
-# List L2.csv extention files
+# List extention files
 files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*_events_radar_unreportedGFW_evaluation.csv", recursive = TRUE)
 
 # Read all files
@@ -190,47 +207,24 @@ RAD <- files %>%
                         "MClara" = "CanaryIs",
                         "Veneguera" = "CanaryIs")) %>%
   # parse NA values to 0
-  replace(is.na(.), 0) 
-
-
-# Number of radar events per population NOT overlapping with GFW
-(kk <-RAD %>%
-  filter(GFWovr == 0 ) %>%
-  mutate(population = recode(colonyName, 
-                             "CalaMorell" = "BalearicIs",
-                             "CVelho" = "CaboVerde",
-                             "MClara" = "CanaryIs",
-                             "Veneguera" = "CanaryIs"),
-         radarID2 = paste0(tripID, "_", radarID)) %>%
-  group_by(population) %>%
-  summarize(
-    n = length(unique(na.omit(radarID2)))
-  )) 
-
-########
-#Step 3#
-########
-effort_months
-
-RAD <- RAD %>%
+  replace(is.na(.), 0) %>%
+  # identify month and date that should match with the other dataset
   dplyr::mutate(
     month = lubridate::month(time),
     date = paste0(year,"0", month, "01")
   )
 
-
-RAD$date
-quantiles$date
-
-#sz <- merge(RAD, quantiles, by = "population", all.x = TRUE)
+# merge info
 sz <- merge(RAD, quantiles, by = "date", all.x = TRUE)
 
 glimpse(sz)
 
 sz <- sz %>%
   dplyr::mutate(
+    # parse to log vessel traffic
     FishingHours_GFW_log = log10(FishingHours_GFW),
     NonFishing_sAIS_log = log10(NonFishing_sAIS),
+    # label as high or low 
     GFWlevel = case_when(
       FishingHours_GFW_log < lowGFWlog ~ "low",
       FishingHours_GFW_log >= lowGFWlog & FishingHours_GFW_log <= highGFWlog ~"medium",
@@ -239,37 +233,23 @@ sz <- sz %>%
       NonFishing_sAIS_log < lowAISlog ~ "low",
       NonFishing_sAIS_log >= lowAISlog & NonFishing_sAIS_log <= highAISlog ~"medium",
       NonFishing_sAIS_log > highAISlog ~ "high")) %>%
+  # filter those one not matching with daily GFW data
   dplyr::filter(
     GFWovr == 0) %>%
+  # per radar event, just select the first location
   group_by(radarID2) %>%
   slice(1) 
-  
 
-
-#sz <- sz %>% 
-#  mutate(
-#    GFWlevel = case_when(
-#      FishingHours_GFW < lowGFW ~ "low",
-#      FishingHours_GFW >= lowGFW & FishingHours_GFW <= highGFW ~"medium",
-#      FishingHours_GFW > highGFW ~ "high"),
-#    AISlevel = case_when(
-#      NonFishing_sAIS < lowAIS ~ "low",
-#      NonFishing_sAIS >= lowAIS & NonFishing_sAIS <= highAIS ~"medium",
-#      NonFishing_sAIS > highAIS ~ "high"),
-#  ) %>%
-#  dplyr::filter(
-#    GFWovr == 0) %>%
-#  group_by(radarID2) %>%
-#  slice(1) 
-
+# recode pop
 sz$population <- recode_factor(sz$population, 
                                BalearicIs = "Balearic Is.", CanaryIs = "Canary Is.", CaboVerde = "Cabo Verde")
 
+# label risk
 sz <- sz %>%
   dplyr::mutate(
     Risk = case_when(
       GFWlevel == "high" & AISlevel =="low" ~ "high",
-      GFWlevel == "medium" & AISlevel =="low" ~ "medium",
+      GFWlevel == "medium" & AISlevel =="low" ~ "high",
       GFWlevel == "low" & AISlevel =="low" ~ "low",
       GFWlevel == "high" & AISlevel =="medium" ~ "medium",
       GFWlevel == "medium" & AISlevel =="medium" ~ "medium",
@@ -280,7 +260,6 @@ sz <- sz %>%
     ))
 
 sz$Risk = as.factor(sz$Risk)
-
 
 ggplot(sz, aes(x = GFWlevel, y = AISlevel, fill= Risk)) +
   fills_risk + 
@@ -295,50 +274,11 @@ ggplot(sz, aes(x = GFWlevel, y = AISlevel, fill= Risk)) +
   ylab ("Non-fishing") 
 
 
-sz <- sz %>%
-  dplyr::mutate(
-    FishingHours_GFW_log1p = log1p(FishingHours_GFW),
-    NonFishing_sAIS_log1p = log1p(NonFishing_sAIS)
-  )
-
-ggplot(sz, aes(x = FishingHours_GFW_log1p, y = NonFishing_sAIS_log1p)) +
-  geom_point()+
-  #scale_x_log10()+
-  #scale_y_log10()+
-  geom_density_2d_filled(contour_var = "ndensity", alpha= 0.8)+
-  theme_minimal() + 
-  xlim(c(0, max(sz$FishingHours_GFW_log1p))) +
-  ylim(c(0, max(sz$NonFishing_sAIS_log1p))) +
-  facet_wrap( ~factor(population, levels=c('Balearic Is.','Canary Is.','Cabo Verde'))) +
-  xlab ("Fishing") +
-  ylab ("Non-fishing") +
-  theme(panel.grid = element_blank())
-
-
-
-# amb max
-maxfish <- log1p(max(RAD$FishingHours_GFW))
-maxNONfish <- log1p(max(RAD$NonFishing_sAIS))
-
-
-ggplot(sz, aes(x = FishingHours_GFW_log1p, y = NonFishing_sAIS_log1p)) +
-  geom_point()+
-  #scale_x_log10()+
-  #scale_y_log10()+
-  geom_density_2d_filled(contour_var = "ndensity", alpha= 0.8)+
-  theme_minimal() + 
-  xlim(c(0, maxfish)) +
-  ylim(c(0, maxNONfish)) +
-  facet_wrap( ~factor(population, levels=c('Balearic Is.','Canary Is.','Cabo Verde'))) +
-  xlab ("Fishing") +
-  ylab ("Non-fishing") +
-  theme(panel.grid = element_blank())
-
 #####
 #MAP#
 #####
 
-  
+
 ##########################
 # general objects needed #
 ##########################
@@ -491,7 +431,7 @@ loc1 <- ggplot() +
   geom_point(data=radar_group,aes(x=longitude, y=latitude, fill = Risk), 
              size=2,show.legend = F, shape = 21, colour = "black", alpha = 0.5) + 
   fills_risk+  
-
+  
   theme_bw()+
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -1135,11 +1075,12 @@ composite <- ggpubr::ggarrange(
   ncol = 3, nrow = 3,
   align="hv",
   common.legend = F)
+
 ##x11();composite
 
 setwd(paste0(WD,"GitData/Bird-borne-radar-detection/output/figures"))
 
-Cairo::Cairo(file = "GFW0_3.png",
+Cairo::Cairo(file = "GFW0_4.png",
              type = "png",
              units = "mm",
              width = 250+100,
@@ -1165,7 +1106,7 @@ legends=ggpubr::ggarrange(blankPlot,
 
 setwd(paste0(WD,"GitData/Bird-borne-radar-detection/output/figures"))
 
-Cairo::Cairo(file = "leg_3.png",
+Cairo::Cairo(file = "leg_4.png",
              type = "png",
              units = "mm",
              width = 250+100,

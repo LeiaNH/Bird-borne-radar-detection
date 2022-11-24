@@ -11,12 +11,12 @@
 ########
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*HourlyBins_radar_evaluation.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*HourlyBins_radar_evaluation.csv", recursive = TRUE)
 
 # Read all files
 RAD <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 ########
 #Step 2#
@@ -95,7 +95,7 @@ registerDoParallel(cl)
 
 foreach(i=1:length(populations), .packages=c("dplyr" ,"tidyverse","data.table", "lubridate", "stats", "MuMIn")) %dopar% {
   
-  # i=1
+  # i=3
   print(i)
   
   # read radar data
@@ -114,7 +114,7 @@ foreach(i=1:length(populations), .packages=c("dplyr" ,"tidyverse","data.table", 
     dplyr::filter(rm == F) 
 
   # write dataset
-  fwrite(rho, file=paste0(WD,"/output/",populations[[i]] ,"_spearmancorr.csv"),row.names=FALSE)
+  fwrite(rho, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/",populations[[i]] ,"_spearmancorr.csv"),row.names=FALSE)
   
   #------#
   # GAMM #
@@ -158,7 +158,7 @@ foreach(i=1:length(populations), .packages=c("dplyr" ,"tidyverse","data.table", 
   
   # perform all combinations
   
-  models <- dredge(model)
+  models <- MuMIn::dredge(model, rank = "AIC")
   
   # add population label
   
@@ -169,7 +169,7 @@ foreach(i=1:length(populations), .packages=c("dplyr" ,"tidyverse","data.table", 
   ########
   
   # write dataset
-  fwrite(models, file=paste0(WD,"/output/", populations[[i]],"_gamm_models.csv"),row.names=FALSE)
+  fwrite(models, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/", populations[[i]],"_gamm_models.csv"),row.names=FALSE)
 
 }
 

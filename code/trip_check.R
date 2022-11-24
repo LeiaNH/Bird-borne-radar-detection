@@ -182,7 +182,25 @@ labels <- GPS %>%
 # merge info
 summtrips <- merge(summtrips, labels, by="tripID", all.x= T)
 
-# summarize info
+# summarize info option a
+sz <- summtrips %>%
+  dplyr::mutate(
+    percentGPSworking = (functioning_days_gps/total_days_gps)*100,
+    percentRADworking = (functioning_days_rad/total_days_rad)*100,
+    RADworking_trip = (functioning_days_rad/total_days_gps)*100
+  ) %>%
+  summarize(
+    mean_percentGPSworking = round(mean(percentGPSworking),1),
+    sd_percentGPSworking = round(sd(percentGPSworking),1),
+    mean_percentRADworking = round(mean(percentRADworking),1),
+    sd_percentRADworking = round(sd(percentRADworking),1),
+    mean_RADworking_trip = round(mean(RADworking_trip),1),
+    sd_RADworking_trip = round(sd(RADworking_trip),1)
+  )
+
+write.csv(sz, paste0(WD,"GitData/Bird-borne-radar-detection/output/tables/general_radartag_functioning.csv"))
+
+# summarize info option b
 sz <- summtrips %>%
   dplyr::mutate(
     percentGPSworking = (functioning_days_gps/total_days_gps)*100,
@@ -200,6 +218,28 @@ sz <- summtrips %>%
   )
 
 write.csv(sz, paste0(WD,"GitData/Bird-borne-radar-detection/output/tables/radartag_functioning.csv"))
+
+# summarize info option C
+sz <- summtrips %>%
+  dplyr::mutate(
+    percentGPSworking = (functioning_days_gps/total_days_gps)*100,
+    percentRADworking = (functioning_days_rad/total_days_rad)*100,
+    RADworking_trip = (functioning_days_rad/total_days_gps)*100,
+    area = if_else(colonyName == "CalaMorell", "MED", "CCLME")
+  ) %>%
+  group_by(area) %>%
+  summarize(
+    mean_percentGPSworking = round(mean(percentGPSworking),1),
+    sd_percentGPSworking = round(sd(percentGPSworking),1),
+    mean_percentRADworking = round(mean(percentRADworking),1),
+    sd_percentRADworking = round(sd(percentRADworking),1),
+    mean_RADworking_trip = round(mean(RADworking_trip),1),
+    sd_RADworking_trip = round(sd(RADworking_trip),1)
+  )
+
+
+#write.csv(sz, paste0(WD,"GitData/Bird-borne-radar-detection/output/tables/radartag_functioning.csv"))
+
 
 ########
 #Step 3#

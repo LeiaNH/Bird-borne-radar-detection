@@ -10,12 +10,12 @@
 ############
 
 # List L2.csv extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*HourlyBins_radar_evaluation.csv", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*HourlyBins_radar_evaluation.csv", recursive = TRUE)
 
 # Read all files
 RAD <- files %>%
   # read in all the files, appending the path before the filename
-  map_df(~ read_csv(file.path(paste0(WD,"output/"), .))) 
+  map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
 visdat::vis_dat(RAD)
 
@@ -49,7 +49,7 @@ scaleList <- list(scale = attr(scaled, "scaled:scale"),
 ########
 
 # List _bestGAMM.rds extention files
-files <- list.files(path = paste0(WD, "output/"), pattern = "*_bestGAMM.rds", recursive = TRUE)
+files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*_bestGAMM.rds", recursive = TRUE)
 
 
 ########
@@ -61,7 +61,7 @@ files <- list.files(path = paste0(WD, "output/"), pattern = "*_bestGAMM.rds", re
 i = 1
 print(files[i])
 
-model <-  readRDS(paste0(WD,"output/", files[i]))
+model <-  readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/", files[i]))
 
 m <- mgcViz::getViz(model$gam)
 
@@ -78,7 +78,7 @@ b1 <- ggplot(p,aes(x=x_unscaled,y=y))+
     geom_rug(alpha = 1/2, position = "jitter")+
     theme_classic()+
     ylab("Effect") +
-    xlab ("Log1p (hours) of fishing vessels") +
+    xlab ("hours of fishing vessels") +
     theme_classic()+
     ylim(-4,5)+
     ggtitle("Balearic Is. population")+
@@ -103,7 +103,7 @@ b2 <- ggplot(p,aes(x=x_unscaled,y=y))+
   geom_rug(alpha = 1/2, position = "jitter")+
   theme_classic()+
   ylab("Effect") +
-  xlab (expression("Log1p (transits km"^-2*") of other vessels")) +
+  xlab (expression("transits km"^-2*" of other vessels")) +
   theme_classic()+
   ylim(-4,5)+
   ggtitle("Balearic Is. population")+
@@ -120,7 +120,7 @@ b2_d<-p
 i = 3
 print(files[i])
 
-model <-  readRDS(paste0(WD,"output/", files[i]))
+model <-  readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/", files[i]))
 
 m <- mgcViz::getViz(model$gam)
 
@@ -136,7 +136,7 @@ c1 <- ggplot(p,aes(x=x_unscaled,y=y))+
   geom_rug(alpha = 1/2, position = "jitter")+
   theme_classic()+
   ylab("Effect") +
-  xlab ("Log1p (hours) of fishing vessels") +
+  xlab ("hours of fishing vessels") +
   theme_classic()+
   ylim(-4,5)+
   ggtitle("Canary Is. population")+
@@ -152,7 +152,7 @@ c1_d <- p
 i = 2
 print(files[i])
 
-model <-  readRDS(paste0(WD,"output/", files[i]))
+model <-  readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/", files[i]))
 
 m <- mgcViz::getViz(model$gam)
 
@@ -168,7 +168,7 @@ cv1 <- ggplot(p,aes(x=x_unscaled,y=y))+
   geom_rug(alpha = 1/2, position = "jitter")+
   theme_classic()+
   ylab("Effect") +
-  xlab ("Log1p (hours) of fishing vessels") +
+  xlab ("hours of fishing vessels") +
   ggtitle("")+
   theme_classic()+
   ylim(-4,5)+
@@ -193,7 +193,7 @@ cv2 <- ggplot(p,aes(x=x_unscaled,y=y))+
   geom_rug(alpha = 1/2, position = "jitter")+
   theme_classic()+
   ylab("Effect") +
-  xlab (expression("Log1p (transits km"^-2*") of other vessels")) +
+  xlab (expression("transits km"^-2*" of other vessels")) +
   ggtitle("")+
   theme_classic()+
   ylim(-4,5)+
@@ -218,7 +218,7 @@ cv3 <- ggplot(p,aes(x=x_unscaled,y=y))+
   geom_rug(alpha = 1/2, position = "jitter")+
   theme_classic()+
   ylab("Effect") +
-  xlab (expression("Log1p (transits km"^-2*") of domestic vessels")) +
+  xlab (expression("transits km"^-2*" of domestic vessels")) +
   ggtitle("")+
   theme_classic()+
   ylim(-4,5)+
@@ -235,17 +235,19 @@ cv3_d <-p
 # plot 
 
 
-composite <- ggpubr::ggarrange(b1,c1, cv1, b2, cv2, cv3,
+composite <- ggpubr::ggarrange(b1, b2, NULL,
+                               c1, NULL, NULL,
+                               cv1, cv2, cv3,
                             #labels=c("A","B","C"), 
-                            ncol = 3, nrow = 2)
+                            ncol = 3, nrow = 3)
 
-setwd(paste0(WD,"output/figures"))
+setwd(paste0(WD,"GitData/Bird-borne-radar-detection/output/figures"))
 
-Cairo::Cairo(file = "ggeffects_FishingvsNonFishing.png",
+Cairo::Cairo(file = "ggeffects_FishingvsNonFishing_V2.png",
              type = "png",
              units = "mm",
-             width = 260,
-             height = 130,
+             width = 200,
+             height = 200,
              dpi = 100,
              bg = "white")
 

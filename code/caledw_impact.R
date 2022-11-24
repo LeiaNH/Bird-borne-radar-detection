@@ -224,6 +224,7 @@ library(lmerTest)
 bm$Ring = as.factor(bm$Ring)
 bm$Individual_type = as.factor(bm$Individual_type)
 
+table(bm$Individual_type)
 
 # calculate diffdays and model it
 days <- bm %>%
@@ -253,31 +254,6 @@ performance::check_singularity(m1)
 # try to solve singularity 
 days %>% janitor::get_dupes(Ring)
 
-rings <- unique(days$Ring)
-
-l <- list()
-for (i in 1:length(rings)){
-  print(i)
-  #i=3
-  ring <- days %>%
-    dplyr::filter(Ring == rings[[i]])
-  
-  if(nrow(ring)>1){
-    if("Radar" %in% unique(ring$Individual_type)){
-      ring <- ring %>% dplyr::filter(Individual_type == "Radar") %>% slice_sample(n = 1)
-    }else{
-      ring <- ring %>% slice_sample(n = 1)
-    }
-  }
-  
-  l[i] <- list(ring)
-  }
-
-days <- do.call(rbind, l)
-
-days %>% janitor::get_dupes(Ring)
-
-m1 <- glmer(Diffdays ~ Individual_type + (1|Ring), family = poisson, data = days)
 
 
 ########
@@ -289,7 +265,8 @@ library(lmerTest)
 bm <- bm %>%
   dplyr::mutate(
     Diffmass = Bodymass_after - Bodymass_before_corr,
-    Percentdiffmass = (Diffmass/Bodymass_before_corr)*100) 
+    Percentdiffmass = (Diffmass/Bodymass_before_corr)*100, 
+    Diffdays = as.numeric(difftime(Recovery_Date, Last_Date_Nest, units = "days")))
   
 #How many cannot do it?
 table(is.na(bm$Percentdiffmass))
@@ -300,13 +277,17 @@ bm <- bm %>% drop_na(Percentdiffmass)
 bm$Ring = as.factor(bm$Ring)
 bm$Individual_type = as.factor(bm$Individual_type)
 
+table(bm$Individual_type)
+
 ggplot(bm, aes(y=Diffmass, x=Individual_type )) + geom_boxplot() + geom_point()
 ggplot(bm, aes(y=Percentdiffmass, x=Individual_type )) + geom_boxplot() + geom_point()
 
 m2 <- lmer(Diffmass ~ Individual_type + (1|Ring), data = bm)
 m2 <- lmer(Percentdiffmass ~ Individual_type + (1|Ring), data = bm)
+m1 <- glmer(Diffdays ~ Individual_type + (1|Ring), family = poisson, data = bm)
 
 summary(m2)
+summary(m1)
 
 #performance
 performance::model_performance(m2)

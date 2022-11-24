@@ -18,6 +18,34 @@ RAD <- files %>%
   # read in all the files, appending the path before the filename
   map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
+# Number of radar events per population overlapping with GFW
+(kk <- RAD %>%
+    filter(GFWovr == "1" ) %>%
+    mutate(population = recode(colonyName, 
+                               "CalaMorell" = "BalearicIs",
+                               "CVelho" = "CaboVerde",
+                               "MClara" = "CanaryIs",
+                               "Veneguera" = "CanaryIs"),
+           radarID2 = paste0(tripID, "_", radarID)) %>%
+    group_by(population) %>%
+    summarize(
+      n = length(unique(na.omit(radarID2)))
+    ))
+
+# Number of radar events per population NOT overlapping with GFW
+(kk<-RAD %>%
+    filter(GFWovr == "0" ) %>%
+    mutate(population = recode(colonyName, 
+                               "CalaMorell" = "BalearicIs",
+                               "CVelho" = "CaboVerde",
+                               "MClara" = "CanaryIs",
+                               "Veneguera" = "CanaryIs"),
+           radarID2 = paste0(tripID, "_", radarID)) %>%
+    group_by(population) %>%
+    summarize(
+      n = length(unique(na.omit(radarID2)))
+    ))
+
 # Filter radar events that did not overlap with GFW datasets
 # RAD <- RAD %>%
 #  dplyr::filter(GFWovr == 0 | is.na(GFWovr))
@@ -39,13 +67,32 @@ effort_months <- RAD %>%
 # effort months available
 sAIS_months <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/input/sAIS")) 
 
-# filter months that coincide with radar data
-effort_months <- effort_months[effort_months %in% sAIS_months]
 
+# filter months that coincide with radar data
+# originally we have that number of months
+length(effort_months)
+# and now we decrease to
+effort_months <- effort_months[effort_months %in% sAIS_months]
+length(effort_months)
+
+# so now we filter
 RAD <- RAD %>%
   dplyr::filter(
     date %in% effort_months)
-  
+
+# and the number of radar events per population NOT overlapping with GFW has decrease to
+(kk<-RAD %>%
+    filter(GFWovr == "0" ) %>%
+    mutate(population = recode(colonyName, 
+                               "CalaMorell" = "BalearicIs",
+                               "CVelho" = "CaboVerde",
+                               "MClara" = "CanaryIs",
+                               "Veneguera" = "CanaryIs"),
+           radarID2 = paste0(tripID, "_", radarID)) %>%
+    group_by(population) %>%
+    summarize(
+      n = length(unique(na.omit(radarID2)))
+    ))  
 
 ########
 #Step 2#
