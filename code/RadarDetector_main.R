@@ -10,7 +10,7 @@ gdata::keep(place, WD, sure = TRUE)
 #---------------------------------------------------------------
 
 place <- "miniPC"
-place<- "laptop"
+#place<- "laptop"
 if (place == "miniPC") WD <- "D:/Dropbox/"
 if (place == "laptop") WD <- "C:/Users/lnh88/Dropbox/" 
 

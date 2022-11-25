@@ -219,6 +219,16 @@ sz <- merge(RAD, quantiles, by = "date", all.x = TRUE)
 
 glimpse(sz)
 
+#number of radar events overlapping in 
+effort_months
+length(unique(sz$radarID2))
+sz %>%
+  dplyr::select(radarID2, population, GFWovr) %>%
+  distinct() %>%
+  group_by(population, GFWovr) %>%
+  summarize(n = n())
+
+
 sz <- sz %>%
   dplyr::mutate(
     # parse to log vessel traffic
