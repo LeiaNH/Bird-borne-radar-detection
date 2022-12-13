@@ -32,6 +32,24 @@ GPS <- files %>%
   # read in all the files, appending the path before the filename
   map_df(~ read_csv(file.path(paste0(WD,"GitData/Bird-borne-radar-detection/output/"), .))) 
 
+# quick summary of trip duration
+(sz <- GPS %>%
+  mutate(sp = recode(colonyName, 
+                             "CalaMorell" = "CALDIO",
+                             "CVelho" = "CALEDW",
+                             "MClara" = "CALBOR",
+                             "Veneguera" = "CALBOR")) %>%
+  group_by(tripID, sp) %>%
+  mutate(tripduration = as.numeric(difftime(max(time), min(time), units = "days"))) %>%
+  group_by(sp) %>%
+  summarize(
+    min = min(tripduration),
+    max = max(tripduration),
+    mean = round(mean(tripduration),1),
+    median = round(median(tripduration),1),
+    sd = round(sd(tripduration),1)
+  ))
+
 # List L2.csv extention files
 files <- list.files(path = paste0(WD, "GitData/Bird-borne-radar-detection/output/"), pattern = "*radar_L2.csv", recursive = TRUE)
 
