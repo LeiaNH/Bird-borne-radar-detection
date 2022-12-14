@@ -246,7 +246,7 @@ setwd(paste0(WD,"GitData/Bird-borne-radar-detection/output/figures"))
 Cairo::Cairo(file = "ggeffects_FishingvsNonFishing_V2.png",
              type = "png",
              units = "mm",
-             width = 200,
+             width = 250,
              height = 200,
              dpi = 100,
              bg = "white")
