@@ -242,7 +242,27 @@ sz <- sz %>%
     AISlevel = case_when(
       NonFishing_sAIS_log < lowAISlog ~ "low",
       NonFishing_sAIS_log >= lowAISlog & NonFishing_sAIS_log <= highAISlog ~"medium",
-      NonFishing_sAIS_log > highAISlog ~ "high")) %>%
+      NonFishing_sAIS_log > highAISlog ~ "high")) 
+
+
+sm <- sz %>% 
+  dplyr::mutate(
+    Risk = case_when(
+      GFWlevel == "high" & AISlevel =="low" ~ "high",
+      GFWlevel == "medium" & AISlevel =="low" ~ "high",
+      GFWlevel == "low" & AISlevel =="low" ~ "low",
+      GFWlevel == "high" & AISlevel =="medium" ~ "medium",
+      GFWlevel == "medium" & AISlevel =="medium" ~ "medium",
+      GFWlevel == "low" & AISlevel =="medium" ~ "low",
+      GFWlevel == "high" & AISlevel =="high" ~ "medium",
+      GFWlevel == "medium" & AISlevel =="high" ~ "medium",
+      GFWlevel == "low" & AISlevel =="high" ~ "low"
+    ))
+
+# for sm 
+fwrite(sm, paste0(WD, "GitData/Bird-borne-radar-detection/output/radarDetsummary.csv"), row.names = F)
+
+sz <- sz %>%
   # filter those one not matching with daily GFW data
   dplyr::filter(
     GFWovr == 0) %>%
