@@ -7,7 +7,7 @@
 # Set working directory and Sys.Time
 #---------------------------------------------------------------
 
-place <- "miniPC"
+place <- "laptop"
 #place<- "laptop"
 if (place == "miniPC") WD <- "D:/Dropbox/"
 if (place == "laptop") WD <- "C:/Users/lnh88/Dropbox/" 
@@ -20,6 +20,10 @@ Sys.setenv(TZ="GMT") ### !!! IMPORTANT: IF NOT SET LIKE THIS, MAKE PROBLEMS TO C
 library(tidyverse)
 library(intervals)
 library(data.table)
+library(lubridate)
+library(raster)
+library(trip)
+
 #---------------------------------------------------------------
 # Processing workflow
 # 1. Compare with raw AIS data
@@ -27,4 +31,8 @@ library(data.table)
 #---------------------------------------------------------------
 
 # rawAIS_validation.R
+
+# ------------------
 # welch_validation.R
+#-------------------
+

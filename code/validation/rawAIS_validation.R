@@ -13,6 +13,7 @@ predicted$Risk = ifelse(predicted$GFWovr == 1, "null", predicted$Risk)
 # sample size
 table(predicted$colonyName, predicted$year)
 
+
 # let's do it only for CALEDW Curral Velho. Advantages to do so:
 # higuest sample size
 # only one year to process
@@ -20,8 +21,8 @@ table(predicted$colonyName, predicted$year)
 
 # prepare input
 
-colonies <- c("CVelho")
-#colonies <- c("MClara", "Veneguera")
+#colonies <- c("CVelho")
+colonies <- c("MClara", "Veneguera")
 
 input <- predicted %>% 
   dplyr::filter(colonyName %in% colonies)
@@ -33,8 +34,8 @@ input <- input %>%
 year <- unique(input$year)
 #year <- 2020
 
-sp <- "CALEDW"
-#sp <- "CALBOR"
+#sp <- "CALEDW"
+sp <- "CALBOR"
 
 # -----------------------------------------------------
 # Let's find match with raw AIS
@@ -122,8 +123,11 @@ saveRDS(final, paste0(WD,"GitData/Bird-borne-radar-detection/output/matchRawIntA
 
 data <- readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/matchRawIntAIS", sp, ".rds"))
 
+year = 2019
+year = 2020
+
 # Read AIS summary file
-summary <- read_csv(paste0("D:/Dropbox/GitData/West-Africa-seabird-fishery/input/AISsummary/", year, "AISsummary.csv")) %>%
+summary <- read_csv(paste0(WD, "GitData/West-Africa-seabird-fishery/input/AISsummary/", year, "AISsummary.csv")) %>%
   dplyr::select(mmsi, vesseltype) %>%
   dplyr::mutate(mmsi = as.character(mmsi))
 
@@ -148,17 +152,9 @@ data$ObsID = as.numeric(data$ObsID)
 
 output <- left_join(input, data, by = "ObsID")
 
-# summary per radar loc
-
-(sz <- output %>%
-  dplyr::group_by(Risk) %>%
-  dplyr::summarise(nonfishing = sum(nonfishing, na.rm = T),
-                   fishing = sum(fishing, na.rm = T),
-                   nodata = sum(nodata, na.rm = T)))
-
 # summary per radarID
 
-sz <- output %>%
+(sz <- output %>%
   dplyr::mutate(
     # create an unique radar ID per trip
     radarID2 = paste0(tripID,"_", radarID)) %>%
@@ -175,86 +171,6 @@ sz <- output %>%
   dplyr::group_by(Risk) %>%
   dplyr::summarise(nonfishing = sum(nonfishing, na.rm = T),
                    fishing = sum(fishing, na.rm = T),
-                   nodata = sum(nodata, na.rm = T))
+                   nodata = sum(nodata, na.rm = T)))
   
 dupes <- sz %>% janitor::get_dupes(radarID2)  
-
-# -----------------------------------------------------
-# -----------------------------------------------------
-# -----------------------------------------------------
-# -----------------------------------------------------
-# -----------------------------------------------------
-# -----------------------------------------------------
-# to delete
-# -----------------------------------------------------
-
-# read radar detections matched with raw AIS trajectories
-
-observed <- readRDS(paste0("D:/Dropbox/GitData/West-Africa-seabird-fishery/output/data/interactions.rds")) %>%
-  dplyr::filter(typeEvent == "attend") %>%
-  dplyr::select(ObsID, typeEvent, organismID, start, end, first_lon, first_lat, last_lon, last_lat)
-
-# add bird info
-bird <- readRDS(paste0("D:/Dropbox/GitData/West-Africa-seabird-fishery/output/data/birdmetadata.rds")) %>% 
-  dplyr::select(codeName, colonyName, ObsID)
-
-observed <- left_join(observed, bird, by = "ObsID")
-
-rm(bird)
-
-# add vessel info
-vessel <- readRDS(paste0("D:/Dropbox/GitData/West-Africa-seabird-fishery/output/data/vessel.rds")) %>%
-  dplyr::select(ObsID, vesseltype)
-
-observed <- left_join(observed, vessel, by = "ObsID")
-
-rm(vessel)
-
-# fix organismID label
-observed <- observed %>%
-  separate(organismID, c("sp", "organismID", "entity"), remove = T) %>%
-  dplyr::filter(
-    entity == "UB",
-    colonyName == "Veneguera" | colonyName == "MClara" | colonyName == "CurralVelho",
-    sp == "CALEDW" | sp == "CALBOR") %>%
-  dplyr::select(-c(entity, codeName))
-
-# -----------------------------------------------------
-# Match both info
-# -----------------------------------------------------
-
-l <- list()
-for ( i in 1:nrow(predicted)){
-  
-  #i=587
-  #i=1
-  paste(i)
-  # row per row
-  predictedSS <- predicted %>% slice(i)
-  
-  # time
-  time <- lubridate::ymd_hms(predictedSS$time)
-  
-  # filter potential match
-  observedSS <- observed %>% 
-    dplyr::filter(organismID == predictedSS$organismID) %>%
-    dplyr::mutate(interval = lubridate::interval(start, end),
-                  match = time %within% interval) %>%
-    dplyr::filter(match == TRUE)
-  
-  # save data 
-  if(nrow(observedSS) > 0){
-  predictedSS$rawAIS = unique(observedSS$vesseltype)
-  }
-  
-  if(nrow(observedSS) == 0){
-  
-  predictedSS$rawAIS = "nodata"
-  }
-  
-  l[i] <- list(predictedSS)
-}
-
-output <- rbindlist(l)
-
-table(output$Risk, output$rawAIS, output$colonyName)

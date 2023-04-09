@@ -2,13 +2,13 @@
 # Steps:
 # 1. Breeding success test for incubation period
 # 2. Breeding success test for all breeding period
-# 2. Trip duration
-# 3. Weight difference
+# 3. Trip duration
+# 4. Weight difference
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 
 # load deployments data of breeders
-deployments <- readxl::read_excel("D:/Dropbox/GitData/Bird-borne-radar-detection/input/CurralVelho2019Impact/CALEDW_Impact.xlsx", sheet = "deployments") %>%
+deployments <- readxl::read_excel(paste0(WD,"/GitData/Bird-borne-radar-detection/input/CurralVelho2019Impact/CALEDW_Impact.xlsx"), sheet = "deployments") %>%
   dplyr::filter(
     # Filter deployments replaced
     RemovedLNH == 0,
@@ -17,7 +17,7 @@ deployments <- readxl::read_excel("D:/Dropbox/GitData/Bird-borne-radar-detection
   dplyr::select(-c(RemovedLNH, TAG_model))
 
 # load b success data
-bsuccess <- readxl::read_excel("D:/Dropbox/GitData/Bird-borne-radar-detection/input/CurralVelho2019Impact/CALEDW_Impact.xlsx", sheet = "bsuccess") %>%
+bsuccess <- readxl::read_excel(paste0(WD,"/GitData/Bird-borne-radar-detection/input/CurralVelho2019Impact/CALEDW_Impact.xlsx"), sheet = "bsuccess") %>%
   dplyr::select(Burrow, EggSuccLNH, ChickSuccLNH, NaturalChickDeath)
 
 # merge both data
@@ -154,7 +154,7 @@ test
 
 # weight loss
 
-replacements <- readxl::read_excel("D:/Dropbox/GitData/Bird-borne-radar-detection/input/CurralVelho2019Impact/CALEDW_Impact.xlsx", sheet = "deployments") %>%
+replacements <- readxl::read_excel(paste0(WD, "GitData/Bird-borne-radar-detection/input/CurralVelho2019Impact/CALEDW_Impact.xlsx"), sheet = "deployments") %>%
   dplyr::filter(
     # Filter deployments removed
     RemovedLNH == 1) %>%
@@ -192,6 +192,8 @@ bm <- d %>%
       Bodymass_before - BDlost*Departure_Date
     )
     )
+
+
 
 # recalculate the percentage of the tag for radar individuals
 
@@ -267,12 +269,28 @@ bm <- bm %>%
     Diffmass = Bodymass_after - Bodymass_before_corr,
     Percentdiffmass = (Diffmass/Bodymass_before_corr)*100, 
     Diffdays = as.numeric(difftime(Recovery_Date, Last_Date_Nest, units = "days")))
-  
+ 
+
 #How many cannot do it?
 table(is.na(bm$Percentdiffmass))
 
 #Let's remove them
 bm <- bm %>% drop_na(Percentdiffmass)
+
+
+# MEAN SD
+bm %>% 
+  dplyr::group_by(Individual_type) %>%
+  summarize(
+    n = n(),
+    Bodymassbefore = paste0(round(mean(Bodymass_before_corr),1),
+                            "\u00B1",
+                            round(sd(Bodymass_before_corr),1)),
+    Bodymassafter = paste0(round(mean(Bodymass_after),1),
+                           "\u00B1",
+                           round(sd(Bodymass_after),1))
+    
+  ) 
 
 bm$Ring = as.factor(bm$Ring)
 bm$Individual_type = as.factor(bm$Individual_type)
