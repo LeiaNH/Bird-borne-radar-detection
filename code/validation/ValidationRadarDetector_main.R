@@ -7,8 +7,8 @@
 # Set working directory and Sys.Time
 #---------------------------------------------------------------
 
-place <- "laptop"
-#place<- "laptop"
+#place <- "laptop"
+place<- "miniPC"
 if (place == "miniPC") WD <- "D:/Dropbox/"
 if (place == "laptop") WD <- "C:/Users/lnh88/Dropbox/" 
 
@@ -23,6 +23,9 @@ library(data.table)
 library(lubridate)
 library(raster)
 library(trip)
+
+# to parallelize
+pacman::p_load("parallel", "doParallel", "foreach")
 
 #---------------------------------------------------------------
 # Processing workflow

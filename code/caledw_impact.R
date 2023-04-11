@@ -288,7 +288,10 @@ bm %>%
                             round(sd(Bodymass_before_corr),1)),
     Bodymassafter = paste0(round(mean(Bodymass_after),1),
                            "\u00B1",
-                           round(sd(Bodymass_after),1))
+                           round(sd(Bodymass_after),1)),
+    DiffMass = paste0(round(mean(Diffmass),1),
+                      "\u00B1",
+                      round(sd(Diffmass),1))
     
   ) 
 

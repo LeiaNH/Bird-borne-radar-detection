@@ -5,172 +5,190 @@
 # read radar detections with GFW and AIS data associated
 
 predicted <- read.csv(paste0(WD, "GitData/Bird-borne-radar-detection/output/radarDetsummary.csv")) %>%
-  dplyr::select(time, organismID, deploymentID, colonyName, year, longitude, latitude, tripID, radarID, GFWovr, GFWlevel, AISlevel, Risk) 
+  dplyr::select(time, organismID, deploymentID, colonyName, year, longitude, latitude, tripID, radarID, GFWovr, GFWlevel, AISlevel, Risk)   %>%
+  mutate(sp = recode(colonyName, 
+                     "CalaMorell" = "CALDIO",
+                     "CVelho" = "CALEDW",
+                     "MClara" = "CALBOR",
+                     "Veneguera" = "CALBOR"))
 
 # relabel risk if GFWovr is equal to 1
 predicted$Risk = ifelse(predicted$GFWovr == 1, "null", predicted$Risk)
 
 # sample size
-table(predicted$colonyName, predicted$year)
-
-
-# let's do it only for CALEDW Curral Velho. Advantages to do so:
-# higuest sample size
-# only one year to process
-# sp with high risk of IUU 
+predicted %>%
+  dplyr::group_by(sp, Risk) %>%
+  summarize(n=n())  %>%
+  pivot_wider(names_from=Risk, values_from=n)
 
 # prepare input
+predicted <- predicted %>% 
+  # remove species with no high IUU observations 
+  dplyr::filter(sp != "CALDIO") %>%
+  # remove null risk
+  dplyr::filter(Risk != "null")
 
-#colonies <- c("CVelho")
-colonies <- c("MClara", "Veneguera")
-
-input <- predicted %>% 
-  dplyr::filter(colonyName %in% colonies)
+# sample size
+predicted %>%
+  dplyr::group_by(sp, Risk) %>%
+  summarize(n=n())  %>%
+  pivot_wider(names_from=Risk, values_from=n)
 
 # add a id row
-input <- input %>%
+predicted <- predicted %>%
   dplyr::mutate(ObsID = row_number())
-
-year <- unique(input$year)
-#year <- 2020
-
-#sp <- "CALEDW"
-sp <- "CALBOR"
 
 # -----------------------------------------------------
 # Let's find match with raw AIS
 # -----------------------------------------------------
 
-AIS <- readRDS(paste0("D:/GitData/mava-ais/output/data4interaction/", year, "AIS.rds"))
+#-----------------#
+# Prepare cluster #
+#-----------------#
 
-l <- list()
+# let's %dopar% per year
+years <- unique(predicted$year)
 
-for (i in 1:nrow(input)){
+cores <- length(year) #Define number of cores
+cl <- makeCluster(cores)
+registerDoParallel(cl)
+
+#-----------------------#
+# Parallel foreach loop #
+#-----------------------#
+
+l <- foreach(y=seq_along(years), .packages=c("dplyr" ,"tidyverse","data.table", "lubridate", "purrr", "geosphere")) %dopar% {
   
-  print(i)
+  #y=2
   
-  #i=2
+  # filter data
+  data <- predicted %>%
+    dplyr::mutate(year = as.numeric(year)) %>%
+    dplyr::filter(year == years[y])
   
-  ss <- input %>% slice(i)
+  # read AIS data
+  AIS <- readRDS(paste0("D:/GitData/mava-ais/output/data4interaction/", years[y], "AIS.rds"))
   
-  # time
-  timeInput <- lubridate::ymd_hms(ss$time)
-  # date
-  dateInput <- as.Date(timeInput)
+  list_data <- list()
   
-  class(dateInput)
-  class(AIS$day)
-  
-  # filter AIS
-  AISss <- AIS %>% 
-    filter(day == dateInput) %>%
-    #dplyr::filter(loctype == "raw") %>%
-    filter(time > timeInput-300 & time < timeInput + 300) %>%
-    dplyr::select(mmsi, longitude, latitude) 
-  
-  if(nrow(AISss) > 0){
+  for (i in 1:nrow(data)){
     
-    # return distance, in meters.
-    AISss$dist <- geosphere::distGeo(p1 = c(ss$longitude, ss$latitude), p2 = as.matrix(AISss[,c("longitude", "latitude")]))  
-  
-    # filter less than 5 km
-    AISss <- AISss %>% dplyr::filter(dist <= 5000)
+    print(i)
     
-    if(nrow(AISss)>0){
-      output <- AISss %>%
-        dplyr::select(mmsi) %>%
-        dplyr::distinct() %>%
-        dplyr::mutate(ObsID = paste(ss$ObsID),
-                      mmsi = as.character(mmsi))
-    }
-    if(nrow(AISss) == 0){
+    #i=11
+    
+    ss <- data %>% slice(i)
+    
+    # time
+    timeInput <- lubridate::ymd_hms(ss$time)
+    # date
+    dateInput <- as.Date(timeInput)
+    
+    class(dateInput)
+    class(AIS$day)
+    
+    # filter AIS
+    AISss <- AIS %>% 
+      filter(day == dateInput) %>%
+      #dplyr::filter(loctype == "raw") %>%
+      filter(time > timeInput-300 & time < timeInput + 300) %>%
+      dplyr::select(mmsi, longitude, latitude) 
+    
+    if(nrow(AISss) > 0){
+      
+      # return distance, in meters.
+      AISss$dist <- geosphere::distGeo(p1 = c(ss$longitude, ss$latitude), p2 = as.matrix(AISss[,c("longitude", "latitude")]))  
+      
+      # filter less than 5 km
+      AISss <- AISss %>% dplyr::filter(dist <= 5000)
+      
+      if(nrow(AISss)>0){
+        output <- AISss %>%
+          dplyr::select(mmsi) %>%
+          dplyr::distinct() %>%
+          dplyr::mutate(ObsID = paste(ss$ObsID),
+                        mmsi = as.character(mmsi))
+      }
+      if(nrow(AISss) == 0){
+        output <- tibble(
+          ObsID = paste(ss$ObsID),
+          mmsi = "nodata"
+        )
+      }
+    } else {
       output <- tibble(
         ObsID = paste(ss$ObsID),
         mmsi = "nodata"
       )
     }
-  } else {
-    output <- tibble(
-      ObsID = paste(ss$ObsID),
-      mmsi = "nodata"
-    )
+    
+    output
+    
+    list_data[i] <- list(output)
+    
   }
   
-  output
+  # unlist
+  final <- do.call(bind_rows,list_data)
   
-  l[i] <- list(output)
+  # mmsi
+  ships <- unique(final$mmsi)
+  
+  # Read AIS summary file
+  summary <- read_csv(paste0(WD, "GitData/West-Africa-seabird-fishery/input/AISsummary/", 
+                             years[y], "AISsummary.csv")) %>%
+    dplyr::select(mmsi, vesseltype) %>%
+    dplyr::mutate(mmsi = as.character(mmsi)) %>%
+    dplyr::filter(mmsi %in% ships)
+  
+  if(nrow(summary)>0){
+    
+    # recode non-fishing per nonfishing
+    summary$vesseltype = gsub("-", "", summary$vesseltype)
+    
+    # merge data
+    final <- left_join(final, summary, by = "mmsi")
   
   }
+  
+  # print it in foreach
+  final
+  }
 
-final <- do.call(bind_rows,l)
+#---------------------------------------------------------------
+# Stop cluster
+#---------------------------------------------------------------
+stopCluster(cl)
 
-final <- final %>%
-  distinct()
+table(predicted$year)
 
-final %>%
-  dplyr::filter(mmsi == "nodata") %>%
-  summarize(
-    n = n()
-  )
+final_output <- do.call(bind_rows, l)
 
-saveRDS(final, paste0(WD,"GitData/Bird-borne-radar-detection/output/matchRawIntAIS",sp, ".rds")) # aqui he tingut en compte les posicions originals (raw) y les interpol·lades. No obstant, crec que faré servir nomes les raw per no complicar els mètodes
+nrow(final_output) == nrow(predicted)
 
-#saveRDS(final, paste0(WD,"GitData/Bird-borne-radar-detection/output/matchRawAIS.rds")) # aqui nomes tinc en compte les posicions originals (Raw) AIS, per tant les posicions interpolades no han estat incloses. Ho he fet aixi, perque l'anterior dataset feia match sempre amb alguna embarcació. Entenc que ara no passará. 
+# merge with original data
+final_output$ObsID = as.character(final_output$ObsID)
+predicted$ObsID = as.character(predicted$ObsID)
 
-# ----------------------------------------------
-# Bind vessel summary information
-# ----------------------------------------------
+final_output <- left_join(final_output, predicted, by = "ObsID")
 
-data <- readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/matchRawIntAIS", sp, ".rds"))
+rm(predicted)
 
-year = 2019
-year = 2020
+saveRDS(final_output, paste0(WD,"GitData/Bird-borne-radar-detection/output/matchRawIntAIS.rds")) 
 
-# Read AIS summary file
-summary <- read_csv(paste0(WD, "GitData/West-Africa-seabird-fishery/input/AISsummary/", year, "AISsummary.csv")) %>%
-  dplyr::select(mmsi, vesseltype) %>%
-  dplyr::mutate(mmsi = as.character(mmsi))
-
-table(summary$vesseltype)
-
-summary$vesseltype = gsub("-", "", summary$vesseltype)
-
-# merge data
-data <- left_join(data, summary, by = "mmsi")
-
-# sz
-data <- data %>%
-  dplyr::mutate(vesseltype = if_else(mmsi == "nodata", "nodata", vesseltype)) %>%
-  dplyr::select(ObsID, vesseltype) %>%
-  distinct() %>%
-  dplyr::mutate(value = 1) %>%
-  pivot_wider(names_from=vesseltype, values_from=value)
-
-# merge to original data 
-input$ObsID = as.numeric(input$ObsID)
-data$ObsID = as.numeric(data$ObsID)
-
-output <- left_join(input, data, by = "ObsID")
+#---------------------------------------------------------------
+# Summarize
+#---------------------------------------------------------------
 
 # summary per radarID
 
-(sz <- output %>%
+(sz <- final_output %>%
+   dplyr::mutate(vesseltype = if_else(mmsi == "nodata", "nodata", vesseltype)) %>%
   dplyr::mutate(
     # create an unique radar ID per trip
     radarID2 = paste0(tripID,"_", radarID)) %>%
-  dplyr::group_by(radarID2, Risk) %>%
-  dplyr::summarise(nonfishing = sum(nonfishing, na.rm = T),
-                   fishing = sum(fishing, na.rm = T),
-                   nodata = sum(nodata, na.rm = T)) %>%
-  dplyr::mutate(
-    nonfishing = if_else(nonfishing>0, 1, 0),
-    fishing =if_else(fishing>0, 1, 0),
-    nodata = if_else(nodata>0, 1, 0)
-    
-  ) %>%
-  dplyr::group_by(Risk) %>%
-  dplyr::summarise(nonfishing = sum(nonfishing, na.rm = T),
-                   fishing = sum(fishing, na.rm = T),
-                   nodata = sum(nodata, na.rm = T)))
+   dplyr::group_by(Risk, vesseltype, sp) %>%
+   dplyr::summarise(n=length(unique(radarID2)))  %>%
+   pivot_wider(names_from=vesseltype, values_from=n))
+   
   
-dupes <- sz %>% janitor::get_dupes(radarID2)  
