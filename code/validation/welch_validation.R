@@ -16,23 +16,42 @@ data <- data %>%
   dplyr::mutate(year = lubridate::year(gap_end_timestamp)) %>%
   dplyr::filter(year == 2019) 
 
-
-
 # ----------------
 # read radar data
 # ----------------
 
 radar <- read.csv(paste0(WD, "GitData/Bird-borne-radar-detection/output/radarDetsummary.csv")) %>%
+  dplyr::select(time, organismID, deploymentID, colonyName, year, longitude, latitude, tripID, radarID, GFWovr, GFWlevel, AISlevel, Risk, radarID2)   %>%
+  mutate(sp = recode(colonyName, 
+                     "CalaMorell" = "CALDIO",
+                     "CVelho" = "CALEDW",
+                     "MClara" = "CALBOR",
+                     "Veneguera" = "CALBOR"))
+
+# relabel risk if GFWovr is equal to 1
+radar$Risk = ifelse(radar$GFWovr == 1, "null", radar$Risk)
+
+# sample size
+radar %>%
+  dplyr::group_by(sp, Risk, year) %>%
+  summarize(n=n())  %>%
+  pivot_wider(names_from=Risk, values_from=n)
+
+radar <- radar %>%
   # parse to date format
   dplyr::mutate(time = lubridate::ymd_hms(time)) %>%
   dplyr::filter(
     # only 2019 and in west africa
     year == 2019, 
-    colonyName != "CalaMorell",
+    sp != "CALDIO",
     # also with high risk
-    Risk == "high")
+    Risk == "high") 
 
-table(radar$colonyName)
+radar %>%
+  dplyr::group_by(sp, Risk, year) %>%
+  summarize(n=n())  %>%
+  pivot_wider(names_from=Risk, values_from=n)
+
 length(unique(radar$radarID2))
 
 min(radar$time)
@@ -41,6 +60,8 @@ max(radar$time)
 # create a vector of dates
 radarTimes <- unique(radar$time)
 class(radarTimes)
+
+saveRDS(radar, paste0(WD,"GitData/Bird-borne-radar-detection/output/WAradarHighIUU.rds")) 
 
 # ----------------
 # temporal overlap 
@@ -67,6 +88,8 @@ for(i in 1:nrow(data)) {
 
 # filter true overlaps
 data <- data %>% dplyr::filter(keep == TRUE)
+
+saveRDS(data, paste0(WD,"GitData/Bird-borne-radar-detection/output/disablings.rds")) 
 
 # --------------
 # interpolation 
@@ -135,9 +158,14 @@ saveRDS(dataInt, paste0(WD,"GitData/Bird-borne-radar-detection/output/intAISgaps
 
 length(unique(dataInt$gap_id))
 
+gdata::keep(place, WD, radar, dataInt, data, sure = TRUE)
+
 # --------------
 # ST overlap 
 # --------------
+dataInt <- readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/intAISgaps.rds"))
+radar <- readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/WAradarHighIUU.rds"))
+data <- readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/disablings.rds"))
 
 # Define the extent of the raster
 ext <- extent(min(radar$longitude) - 1, 
@@ -161,9 +189,6 @@ r
 
 plot(r)
 
-# read AIS gaps interpolated 
-dataInt <- readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/intAISgaps.rds"))
-
 # list of interval times 
 intervalGAPS <- dataInt %>%
   group_by(gap_id) %>%
@@ -184,7 +209,7 @@ iteration <- unique(radar$radarID2)
 for(i in seq_along(iteration)){
   
   print(length(iteration)-i)
-  #i=175
+  #i=7
   
   # radar event label
   radarEv <- iteration[i]
@@ -220,7 +245,7 @@ for(i in seq_along(iteration)){
   
   for (j in seq_along(intervalGAPS_ss)){
     
-    #j=1
+    #j=4
     
     # subset
     AISgaplocs <- dataInt %>%
@@ -313,34 +338,40 @@ hoursWeek <- 24*7   # 1 weeks in hours
 final <- final %>%
   mutate(gap_weeks = gap_hours/hoursWeek)
 
+gdata::keep(place, WD, final, sure = TRUE)
 
-saveRDS(final, paste0(WD,"GitData/Bird-borne-radar-detection/output/RadarAISgapsOVR.rds")) # aqui he tingut en compte les posicions originals (raw) y les interpol·lades. No obstant, crec que faré servir nomes les raw per no complicar els mètodes
-
+saveRDS(final, paste0(WD,"GitData/Bird-borne-radar-detection/output/RadarAISgapsOVR.rds")) 
 table(final$gap_id)
 
+# read data
+final <- readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/RadarAISgapsOVR.rds"))
 
 
-
+# --------
 # summary
+# --------
 
 # numero d'events amb alt IUU risk
 length(unique(final$radarID2))
 
-# numero d'events que no han fet match amb cap AIS gap
-final %>% dplyr::filter(gap_id == "none") %>% summarize(n=n())
+# summary d'events i AIS disabling events
+ev <- final %>%
+  dplyr::mutate(match = if_else(is.na(mmsi), "no","yes"))%>%
+  group_by(radarID2, match) %>%
+  dplyr::summarise(
+    n = length(unique(gap_id))) %>%
+  pivot_wider(names_from=match, values_from=n)
 
-# numero de ais gaps ID relacionats per cada radarID2
-final %>% 
-  filter(gap_id != "none") %>%
-  group_by(radarID2) %>%
-  summarize(
-    gaps = length(unique(gap_id))
-  ) %>%
-  ungroup() %>%
-  group_by(gaps) %>%
-  summarize(
-    nradarID = length(unique(radarID2))
-  )
+ev %>% filter(no == 1) # events not matched with any AIS disabling gap
+
+ev %>% filter(yes == 1) # events matched with 1 AIS disabling gap
+ev %>% filter(yes > 1) # events matched with more than 1 AIS disabling gap
+
+# table to print
+table <- final %>%
+  mutate(gap_weeks = round(gap_weeks,1)) %>%
+  group_by(gap_id, gap_weeks, flag, vessel_class) %>%
+  summarize(n = length(radarID2))
 
 # events below and over 2 weeks
 final %>% 

@@ -5,7 +5,7 @@
 # read radar detections with GFW and AIS data associated
 
 predicted <- read.csv(paste0(WD, "GitData/Bird-borne-radar-detection/output/radarDetsummary.csv")) %>%
-  dplyr::select(time, organismID, deploymentID, colonyName, year, longitude, latitude, tripID, radarID, GFWovr, GFWlevel, AISlevel, Risk)   %>%
+  dplyr::select(time, organismID, deploymentID, colonyName, year, longitude, latitude, tripID, radarID, GFWovr, GFWlevel, AISlevel, Risk, radarID2)   %>%
   mutate(sp = recode(colonyName, 
                      "CalaMorell" = "CALDIO",
                      "CVelho" = "CALEDW",
@@ -17,7 +17,7 @@ predicted$Risk = ifelse(predicted$GFWovr == 1, "null", predicted$Risk)
 
 # sample size
 predicted %>%
-  dplyr::group_by(sp, Risk) %>%
+  dplyr::group_by(sp, Risk, year) %>%
   summarize(n=n())  %>%
   pivot_wider(names_from=Risk, values_from=n)
 
@@ -30,13 +30,15 @@ predicted <- predicted %>%
 
 # sample size
 predicted %>%
-  dplyr::group_by(sp, Risk) %>%
+  dplyr::group_by(sp, Risk, year) %>%
   summarize(n=n())  %>%
   pivot_wider(names_from=Risk, values_from=n)
 
 # add a id row
 predicted <- predicted %>%
   dplyr::mutate(ObsID = row_number())
+
+predicted %>% dplyr::filter(Risk == "high") %>% group_by(sp, year) %>% summarize(n=length(unique(radarID2)))
 
 # -----------------------------------------------------
 # Let's find match with raw AIS
@@ -176,19 +178,33 @@ rm(predicted)
 
 saveRDS(final_output, paste0(WD,"GitData/Bird-borne-radar-detection/output/matchRawIntAIS.rds")) 
 
+length(unique(final_output$radarID2))
+
 #---------------------------------------------------------------
 # Summarize
 #---------------------------------------------------------------
 
+final_output <- readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/matchRawIntAIS.rds")) 
+
 # summary per radarID
 
-(sz <- final_output %>%
-   dplyr::mutate(vesseltype = if_else(mmsi == "nodata", "nodata", vesseltype)) %>%
-  dplyr::mutate(
-    # create an unique radar ID per trip
-    radarID2 = paste0(tripID,"_", radarID)) %>%
-   dplyr::group_by(Risk, vesseltype, sp) %>%
+final_output <- final_output %>%
+   dplyr::mutate(vesseltype = if_else(mmsi == "nodata", "nodata", vesseltype)) 
+
+
+sz <- final_output %>%
+  dplyr::select(Risk, vesseltype, radarID2, sp, year) %>%
+  dplyr::mutate(value = "1") %>%
+  distinct() %>%
+  pivot_wider(names_from=vesseltype, values_from=value) 
+
+names(sz) # there are no match with fishing vessels
+
+sz <- sz %>%
+  dplyr::mutate(match = if_else(!is.na(nonfishing), "nonfishing", "nodata")) %>%
+   dplyr::group_by(Risk, match, sp) %>%
    dplyr::summarise(n=length(unique(radarID2)))  %>%
-   pivot_wider(names_from=vesseltype, values_from=n))
-   
+   pivot_wider(names_from=match, values_from=n)
+
+sz   
   
