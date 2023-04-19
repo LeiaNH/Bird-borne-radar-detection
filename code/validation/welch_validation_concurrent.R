@@ -1,3 +1,8 @@
+run <- "NO"
+#run <- "YES"
+
+if(run == "YES"){
+
 # ----------------
 # read welch data
 # ----------------
@@ -63,6 +68,7 @@ class(radarTimes)
 
 saveRDS(radar, paste0(WD,"GitData/Bird-borne-radar-detection/output/WAradarHighIUU.rds")) 
 
+  
 # ----------------
 # temporal overlap 
 # ----------------
@@ -157,8 +163,7 @@ dataInt <- data.table::rbindlist(l)
 saveRDS(dataInt, paste0(WD,"GitData/Bird-borne-radar-detection/output/intAISgaps.rds")) # aqui he tingut en compte les posicions originals (raw) y les interpol·lades. No obstant, crec que faré servir nomes les raw per no complicar els mètodes
 
 length(unique(dataInt$gap_id))
-
-gdata::keep(place, WD, radar, dataInt, data, sure = TRUE)
+}
 
 # --------------
 # ST overlap 
@@ -167,27 +172,13 @@ dataInt <- readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/intAISga
 radar <- readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/WAradarHighIUU.rds"))
 data <- readRDS(paste0(WD,"GitData/Bird-borne-radar-detection/output/disablings.rds"))
 
-# Define the extent of the raster
-ext <- extent(min(radar$longitude) - 1, 
-              max(radar$longitude) + 1, 
-              min(radar$latitude) - 1, 
-              max(radar$latitude) + 1)
-
-# Define the resolution of the raster
-res <- 1
-
-# Define the CRS of the raster
-crs <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
-
-# Create an empty raster with the defined extent, resolution, and CRS
-r <- raster(ext, res, crs=crs)
-
-# Set the values of the raster to NA
-values(r) <- NA
-
-r
-
-plot(r)
+# create empty raster 
+r <- raster(xmn=floor(min(dataInt$lon))-0.5, 
+            xmx=ceiling(max(dataInt$lon)+0.5), 
+            ymn=floor(min(dataInt$lat)-0.5), 
+            ymx=ceiling(max(dataInt$lat)+0.5),
+            crs=CRS("+proj=longlat +datum=WGS84"),
+            resolution=c(1, 1), vals=NULL)
 
 # list of interval times 
 intervalGAPS <- dataInt %>%
@@ -285,8 +276,6 @@ for(i in seq_along(iteration)){
         )
         match[j] <- list(table)
       }
-      
-
     }
     }
   

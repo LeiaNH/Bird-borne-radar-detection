@@ -100,7 +100,7 @@ populations <- unique(RAD$population)
 
 for (i in seq_along(populations)) {
   
-  #i = 1
+  #i = 2
   
   # ~~~~~~~~~~~~~~~~ #
   # Balearic Is. pop #
@@ -151,15 +151,15 @@ for (i in seq_along(populations)) {
     m <- gamm4::gamm4( 
       radar_presence ~
         Light+
-        s(fishves_scaled ) +
-        s(otheves_scaled ) + 
-        s(domeves_scaled),
+        s(fishves_scaled ),# +
+        #s(otheves_scaled ) + 
+        #s(domeves_scaled),
       random = ~(1| organismID/tripID), #+ (1|year)
       family = "binomial", radar_group, REML=TRUE)
   }
   
   # save model
-  saveRDS(m, paste0(WD,"output/", unique(radar_group$population) ,"_bestGAMM.rds"))
+  saveRDS(m, paste0(WD,"GitData/Bird-borne-radar-detection/output/", unique(radar_group$population) ,"_bestGAMM.rds"))
   
   #---------------------------------------------------------------
   # Summary of the model and AUC calculation
@@ -197,7 +197,7 @@ for (i in seq_along(populations)) {
   summary[nrow(summary)+1,] <- paste("AUC=", Fit)
   
   # write it
-  fwrite(summary, file=paste0(WD,"output/", unique(radar_group$population) ,"_bestGAMM_rawtable.csv"),row.names=FALSE)
+  fwrite(summary, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/", unique(radar_group$population) ,"_bestGAMM_rawtable.csv"),row.names=FALSE)
 
   # Second summarized table to print
   
@@ -222,7 +222,7 @@ for (i in seq_along(populations)) {
   summary <- bind_rows(FIXED, SMOOTHED, AUC)
   
   # write it
-  fwrite(summary, file=paste0(WD,"output/", unique(radar_group$population) ,"_summary_bestGAMM.csv"),row.names=FALSE)
+  fwrite(summary, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/", unique(radar_group$population) ,"_summary_bestGAMM.csv"),row.names=FALSE)
   
   #---------------------------------------------------------------
   # Substracting residuals
@@ -238,6 +238,6 @@ for (i in seq_along(populations)) {
   radar_group <- bind_cols(radar_group, residuals)
   
   # write it
-  fwrite(radar_group, file=paste0(WD,"output/", unique(radar_group$population) ,"_residuals_bestGAMM.csv"),row.names=FALSE)
+  fwrite(radar_group, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/", unique(radar_group$population) ,"_residuals_bestGAMM.csv"),row.names=FALSE)
   
 }

@@ -102,7 +102,7 @@ pop_sz <- list()
 for (i in seq_along(populations)) {
 
   print(populations[i])  
-  #  i=1
+  #  i=2
   
   # filter the population
   radar_group <- RAD %>%
@@ -187,9 +187,9 @@ for (i in seq_along(populations)) {
         m <- gamm4::gamm4( 
           radar_presence ~
             Light+
-            s(fishves_scaled ) +
-            s(otheves_scaled ) + 
-            s(domeves_scaled),
+            s(fishves_scaled ),# +
+            #s(otheves_scaled ) + 
+            #s(domeves_scaled),
           random = ~(1| organismID/tripID), #+ (1|year)
           family = "binomial", radar_group, REML=TRUE)
       }
@@ -260,8 +260,8 @@ ggplot(acc_sz, aes(x= factor(population, level = c('BalearicIs', 'CanaryIs', 'Ca
   geom_point(show.legend = F, alpha = 0.5, size=5) + 
   cols_pop + 
   geom_point (x = "BalearicIs", y = 0.7, colour= "black", shape = 4, size = 5) +
-  geom_point (x = "CaboVerde", y = 0.9, colour= "black", shape = 4, size = ) +
-  geom_point (x = "CanaryIs", y = 0.7, colour= "black", shape = 4, size = ) +
+  geom_point (x = "CaboVerde", y = 0.9, colour= "black", shape = 4, size = 5) +
+  geom_point (x = "CanaryIs", y = 0.7, colour= "black", shape = 4, size = 5) +
   ylim(c(0,1)) +
   theme_classic() +
   ylab("AUC") +

@@ -27,6 +27,15 @@ library(trip)
 # to parallelize
 pacman::p_load("parallel", "doParallel", "foreach")
 
+fills_risk <- scale_fill_manual(name="Risk",
+                                values = c("high"= "#ad1e02",
+                                           "medium"= "#F0E442",
+                                           "low"= "#009E73"))
+
+cols_risk <- scale_colour_manual(name="Risk",
+                                 values = c("high"= "#ad1e02",
+                                            "medium"= "#F0E442",
+                                            "low"= "#009E73"))
 #---------------------------------------------------------------
 # Processing workflow
 # 1. Compare with raw AIS data
@@ -39,3 +48,5 @@ pacman::p_load("parallel", "doParallel", "foreach")
 # welch_validation.R
 #-------------------
 
+# welch_validation_concurrent.R
+# welch_validation_all.R
