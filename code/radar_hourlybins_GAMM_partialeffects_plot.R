@@ -181,72 +181,72 @@ cv1 <- ggplot(p,aes(x=x_unscaled,y=y))+
   
 cv1_d<-p
 
-p <- plot(mgcViz::sm(m, 2) )
+#p <- plot(mgcViz::sm(m, 2) )
 
-p <- p[["data"]][["fit"]]
-p <- p %>%
-  dplyr::mutate(
-    x_unscaled=t(t(x) * scaleList$scale[[3]] + scaleList$center[[3]]))
+#p <- p[["data"]][["fit"]]
+#p <- p %>%
+  #dplyr::mutate(
+  #  x_unscaled=t(t(x) * scaleList$scale[[3]] + scaleList$center[[3]]))
 
-cv2 <- ggplot(p,aes(x=x_unscaled,y=y))+
-  geom_line(colour = "#009E73", size=0.5)+
-  geom_rug(alpha = 1/2, position = "jitter")+
-  theme_classic()+
-  ylab("Effect") +
-  xlab (expression("transits km"^-2*" of other vessels")) +
-  ggtitle("")+
-  theme_classic()+
-  ylim(-4,5)+
-  ggtitle("Cabo Verde population")+
-  geom_ribbon(aes(ymin = y-se, ymax = y+se),fill="#009E73",alpha=0.2)+
-  theme(axis.text.x = element_text(size = 11),
-        axis.text.y = element_text(size = 11),
-        panel.background = element_rect(fill = "transparent", colour = NA),
-        plot.background = element_rect(fill = "transparent", colour = NA))
+#cv2 <- ggplot(p,aes(x=x_unscaled,y=y))+
+#  geom_line(colour = "#009E73", size=0.5)+
+#  geom_rug(alpha = 1/2, position = "jitter")+
+#  theme_classic()+
+#  ylab("Effect") +
+#  xlab (expression("transits km"^-2*" of other vessels")) +
+#  ggtitle("")+
+#  theme_classic()+
+#  ylim(-4,5)+
+#  ggtitle("Cabo Verde population")+
+#  geom_ribbon(aes(ymin = y-se, ymax = y+se),fill="#009E73",alpha=0.2)+
+#  theme(axis.text.x = element_text(size = 11),
+ #       axis.text.y = element_text(size = 11),
+  #      panel.background = element_rect(fill = "transparent", colour = NA),
+   #     plot.background = element_rect(fill = "transparent", colour = NA))
 
-cv2_d<-p
+#cv2_d<-p
 
-p <- plot(mgcViz::sm(m, 3) )
+#p <- plot(mgcViz::sm(m, 3) )
 
-p <- p[["data"]][["fit"]]
-p <- p %>%
-  dplyr::mutate(
-    x_unscaled=t(t(x) * scaleList$scale[[2]] + scaleList$center[[2]]))
+#p <- p[["data"]][["fit"]]
+#p <- p %>%
+  # dplyr::mutate(
+  #  x_unscaled=t(t(x) * scaleList$scale[[2]] + scaleList$center[[2]]))
 
-cv3 <- ggplot(p,aes(x=x_unscaled,y=y))+
-  geom_line(colour = "#009E73", size=0.5)+
-  geom_rug(alpha = 1/2, position = "jitter")+
-  theme_classic()+
-  ylab("Effect") +
-  xlab (expression("transits km"^-2*" of domestic vessels")) +
-  ggtitle("")+
-  theme_classic()+
-  ylim(-4,5)+
-  ggtitle("Cabo Verde population")+
-  geom_ribbon(aes(ymin = y-se, ymax = y+se),fill="#009E73",alpha=0.2)+
-  theme(axis.text.x = element_text(size = 11),
-        axis.text.y = element_text(size = 11),
-        panel.background = element_rect(fill = "transparent", colour = NA),
-        plot.background = element_rect(fill = "transparent", colour = NA))
+#cv3 <- ggplot(p,aes(x=x_unscaled,y=y))+
+#  geom_line(colour = "#009E73", size=0.5)+
+#  geom_rug(alpha = 1/2, position = "jitter")+
+#  theme_classic()+
+#  ylab("Effect") +
+#  xlab (expression("transits km"^-2*" of domestic vessels")) +
+#  ggtitle("")+
+#  theme_classic()+
+#  ylim(-4,5)+
+#  ggtitle("Cabo Verde population")+
+#  geom_ribbon(aes(ymin = y-se, ymax = y+se),fill="#009E73",alpha=0.2)+
+#  theme(axis.text.x = element_text(size = 11),
+ #       axis.text.y = element_text(size = 11),
+  #      panel.background = element_rect(fill = "transparent", colour = NA),
+   #     plot.background = element_rect(fill = "transparent", colour = NA))
 
-cv3_d <-p
+#cv3_d <-p
 
 
 # plot 
 
 
-composite <- ggpubr::ggarrange(b1, b2, NULL,
-                               c1, NULL, NULL,
-                               cv1, cv2, cv3,
+composite <- ggpubr::ggarrange(b1, b2, 
+                               c1, NULL, 
+                               cv1, NULL,
                             #labels=c("A","B","C"), 
-                            ncol = 3, nrow = 3)
+                            ncol = 2, nrow = 3)
 
 setwd(paste0(WD,"GitData/Bird-borne-radar-detection/output/figures"))
 
-Cairo::Cairo(file = "ggeffects_FishingvsNonFishing_V2.png",
+Cairo::Cairo(file = "ggeffects_FishingvsNonFishing_V3.png",
              type = "png",
              units = "mm",
-             width = 250,
+             width = 200,
              height = 200,
              dpi = 100,
              bg = "white")
