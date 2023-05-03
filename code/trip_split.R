@@ -126,10 +126,11 @@ foreach(i=1:length(colonysites), .packages=c("track2KBA", "dplyr" ,"sf", "SDLfil
   
   #deployment_v <- deployment_v[20:21]
   dataGroup_interpolation <- list()
+  #speed_list <- list()
   
   for (d in seq_along(deployment_v)){#seq_along(deployment_v)
     
-    #d = 3
+    #d = 1
      print(paste0("d=",d))
     # select deployment
     
@@ -159,6 +160,17 @@ foreach(i=1:length(colonysites), .packages=c("track2KBA", "dplyr" ,"sf", "SDLfil
     #------------------------------#
   
     deployment_ss <- filter_speed(data = deployment_ss, vmax = vmax_v, method = method_v)   
+    
+    #maxSpeed <- tibble::tibble(
+     # deploymentID = unique(deployment_ss$deploymentID),
+    #  colonyName = unique(deployment_ss$colonyName),
+    #  pDist_max = max(deployment_ss$pDist, na.rm = T),
+    #  sDist_max = max(deployment_ss$sDist, na.rm = T),
+    #  pSpeed_max = max(deployment_ss$pSpeed, na.rm = T),
+    #  sSpeed_max = max(deployment_ss$sSpeed, na.rm = T)
+      
+    #)
+    #speed_list[d] <- list(maxSpeed)
     
     ########
     #Step 6#
@@ -229,6 +241,8 @@ foreach(i=1:length(colonysites), .packages=c("track2KBA", "dplyr" ,"sf", "SDLfil
     }
 
     locs <- do.call(rbind.data.frame, list_deployment_ss)
+    table(locs$type)
+    
     dataGroup_interpolation [d] <- list(locs)
     
   }

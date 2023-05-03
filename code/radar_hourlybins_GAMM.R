@@ -95,7 +95,7 @@ registerDoParallel(cl)
 
 foreach(i=1:length(populations), .packages=c("dplyr" ,"tidyverse","data.table", "lubridate", "stats", "MuMIn")) %dopar% {
   
-  # i=2
+  # i=3
   print(i)
   
   # read radar data
@@ -113,11 +113,6 @@ foreach(i=1:length(populations), .packages=c("dplyr" ,"tidyverse","data.table", 
     dplyr::mutate(rm = if_else(var1 == var2, T,F)) %>%
     dplyr::filter(rm == F) 
 
-  #library("ggpubr")
-  #ggscatter(radar_group, x = "otheves_scaled", y = "fishves_scaled", 
-   #         add = "reg.line", conf.int = TRUE, 
-    #        cor.coef = TRUE, cor.method = "spearman")
-  
   # write dataset
   fwrite(rho, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/",populations[[i]] ,"_spearmancorr.csv"),row.names=FALSE)
   
@@ -138,13 +133,12 @@ foreach(i=1:length(populations), .packages=c("dplyr" ,"tidyverse","data.table", 
     
     # run a full model set from the global model 
     
-    radar_group <- radar_group %>% dplyr::select(-otheves_scaled) 
-    
     model <-MuMIn::uGamm(radar_presence ~
                            Light+
                            Week+
                            s(fishves_scaled)+
-                           s(domeves_scaled),
+                           s(domeves_scaled)+
+                           s(otheves_scaled),
                          random = ~(1| organismID/tripID),
                          family = "binomial", radar_group, REML=TRUE)
     

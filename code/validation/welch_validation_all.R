@@ -179,16 +179,31 @@ if(plots == "YES"){
 
   ggplot(df) +
     geom_tile(aes(x=x, y=y, fill=layer))  +
-    scale_fill_viridis_c()+
+     scale_fill_viridis_c(name = "N AIS disablings", option = "magma")+
+    #scale_fill_gradient(low = "cyan", high = "blue",name = "N AIS disablings") +
     # plot land mask
     geom_sf(data = world, 
             color = "gray30", fill = "gray90",lwd  = 0.05) +
     # extent
-    coord_sf(xlim = c(lonmin, lonmax), ylim = c(latmin, latmax))+
+    coord_sf(xlim = c(lonmin+0.5, lonmax-0.8), ylim = c(latmin+0.5, latmax-1))+
     theme_classic() +
-    geom_point(data=radar, aes(x=longitude, y=latitude), colour="red", alpha =0.2) +
+    geom_point(data=radar, aes(x=longitude, y=latitude), colour = "white", show.legend = F) +
+    geom_point(data=radar, aes(x=longitude, y=latitude, colour = Risk),  alpha = 0.8, show.legend = F) +
+    cols_risk + 
     xlab("") +
-    ylab("")
+    ylab("") +
+    theme_bw()+
+    theme(strip.text = element_text(size=3),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10),        
+          plot.margin = unit(c(0, 0, 0, 0), "lines"),
+          panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_rect(fill = "transparent", colour = NA),
+          plot.background = element_rect(fill = "transparent", colour = NA),
+          legend.position="bottom"
+    )
   
 }
 
@@ -207,6 +222,9 @@ cell_values <- extract(rcnt, radar_sp)
 # Create a new column in new_traj_data with the cell values
 radar$cell_value <- cell_values
 
+# parse na to 0
+radar[is.na(radar)] <- 0
+
 # ------------------------------
 # violin plot 
 # ------------------------------
@@ -217,49 +235,8 @@ sz <-  radar %>%
   dplyr::group_by(radarID2) %>%
   slice(which.max(cell_value))
 
-ggplot(sz, aes(cell_value, fill = Risk, colour = Risk)) +
-  geom_density(alpha = 0.2) +
-  theme_classic() + 
-  fills_risk + 
-  cols_risk +
-  xlab("N AIS disablings")
-
-ggplot(sz, aes(cell_value, fill = Risk, colour = Risk)) +
-  geom_histogram(alpha = 0.2) +
-  theme_classic() + 
-  fills_risk + 
-  cols_risk +
-  xlab("N AIS disablings")
-  
-ggplot(sz, aes(x= Risk, y=cell_value, fill = Risk, colour = Risk)) +
-  geom_boxplot(alpha = 0.2) +
-  theme_classic() + 
-  fills_risk + 
-  cols_risk +
-  geom_point(position="jitter")+
-  xlab("N AIS disablings")
-
-ggplot(sz, aes(x= Risk, y=cell_value, fill = Risk, colour = Risk)) +
-  geom_violin(alpha = 0.2) +
-  theme_classic() + 
-  fills_risk + 
-  geom_point(position="jitter")+
-  cols_risk +
-  xlab("N AIS disablings")
-
-ggplot(sz, aes(x= Risk, y=cell_value, fill = Risk, colour = Risk)) +
-  geom_tile(alpha = 0.2) 
-
-# traditional boxplot
-ss <- sz %>% 
-  ungroup() %>%
-  dplyr::select(Risk, cell_value) %>%
-  drop_na(cell_value)
-
-# other 
-
 # Calculate the mean and standard deviation for each category
-summary_df <- ss %>%
+summary_df <- sz %>%
   group_by(Risk) %>%
   summarize(
     mean=mean(cell_value),
@@ -267,12 +244,35 @@ summary_df <- ss %>%
 
 # Create a ggplot with error bars
 ggplot(data = summary_df, aes(x=factor(Risk, level=c('high', 'medium', 'low')), y=mean, colour=Risk)) +
-  geom_point() +
-  cols_risk + 
+  geom_point(size=5) +
   geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2) +
   theme_classic() + 
-  xlab("") + 
+  xlab("Radar events IUU Risk") + 
   ylab("N AIS disablings") +
-  theme(legend.position = "none")   
+  theme(legend.position = "none")  +
+  geom_dotplot(data=sz, aes(x=Risk, y= cell_value, fill=Risk), 
+               size = 0.5, binaxis = "y", stackdir = "center", alpha=0.2) +
+  theme(
+    axis.text.x = element_text(size = 13),
+    axis.title.x = element_text(size = 15),
+    axis.text.y = element_text(size = 13), 
+    axis.title.y = element_text(size = 15))+
+  cols_risk + 
+  fills_risk
+  
   
 
+  
+ss$Risk = as.factor(ss$Risk)  
+
+# Add violin plots
+ggpubr::ggerrorplot(ss, x = "Risk", y = "cell_value", 
+            desc_stat = "mean_sd", color = "black",
+            add = "violin", add.params = list(color = "darkgray")
+)
+
+# Add dot plots
+ggpubr::ggerrorplot(ss, x = "Risk", y = "cell_value", 
+            desc_stat = "mean_sd", color = "black",
+            add = "dotplot", add.params = list(color = "darkgray")
+)

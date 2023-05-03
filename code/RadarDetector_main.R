@@ -422,7 +422,7 @@ source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_hourlybins_GA
 k_value = 5
 
 # Run code #
-source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/radar_hourlybins_GAMM_sz.R"))
+source(paste0(WD,"GitHub_LNH/Bird-borne-radar-detection/code/CV_GAMM.R"))
 
 #### CALEDW impact  ####------------------------------
 
