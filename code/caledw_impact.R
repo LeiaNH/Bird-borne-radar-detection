@@ -168,7 +168,7 @@ replacements <- readxl::read_excel(paste0(WD, "GitData/Bird-borne-radar-detectio
     #calculate weight loss per day
     BMlost = diffBM/diffDays) %>%
   #summarize mean and sd
-  summarize(
+  dplyr::summarize(
     median = median(BMlost),
     mean = mean(BMlost),
     sd = sd(BMlost),

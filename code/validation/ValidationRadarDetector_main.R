@@ -17,12 +17,17 @@ Sys.setenv(TZ="GMT") ### !!! IMPORTANT: IF NOT SET LIKE THIS, MAKE PROBLEMS TO C
 #---------------------------------------------------------------
 # Libraries and functions
 #---------------------------------------------------------------
-library(tidyverse)
+library(dplyr)
+library(plyr)
+library(purrr)
+library(stringr)
+library(ggplot2)
 library(intervals)
 library(data.table)
 library(lubridate)
 library(raster)
 library(trip)
+library(tidyr)
 
 # to parallelize
 pacman::p_load("parallel", "doParallel", "foreach")
