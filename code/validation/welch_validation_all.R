@@ -167,12 +167,19 @@ rcnt <- rasterize(cbind(dataInt$lon, dataInt$lat), r, field = dataInt$gap_id, fu
 #-------------------------------------------------------------
 plot(rcnt)
 
+# load worldmap as sf
+load(paste0(WD, "GitData/Bird-borne-radar-detection/input/valid_world_map.Rdata"))
+msk_valid %>% 
+  dplyr::select(Name) -> msk_sf  
+
+rm(msk_valid)
+
 # Plot the resulting raster
 
 if(plots == "YES"){
   
   # landmask
-  world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+  # world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
   
   # View the first few rows of the dataframe
   df <- as.data.frame(rcnt, xy=TRUE, na.rm=TRUE)
@@ -184,8 +191,13 @@ if(plots == "YES"){
                         high = "#E94B3CFF",
                         name = "N AIS disablings") +
     # plot land mask
-    geom_sf(data = world, 
-            color = "gray30", fill = "gray90",lwd  = 0.05) +
+    geom_sf(data = msk_sf, 
+            color = "gray50", fill = "gray90",lwd  = 0.05) +
+    geom_sf(data = eezs,
+            color = alpha("gray50"),
+            fill = NA,
+            lwd  = 0.05,
+            lty = 1)+   
     # extent
     coord_sf(xlim = c(lonmin+0.5, lonmax-0.8), ylim = c(latmin+0.5, latmax-1))+
     theme_classic() +
