@@ -139,9 +139,23 @@ flags$population <- factor(flags$population,      # Reordering group factor leve
                          levels = c("BalearicIs",  "CanaryIs", "CaboVerde"),
                          labels = c("Balearic Is.", "Canary Is.", "Cabo Verde"))
 
-ggplot(flags, aes(x=country, y=Count, fill=colonyName)) + geom_col() + fills_colony + theme_bw() + facet_grid(~population) +coord_flip()+
-  ylab("Number of Radar events") + xlab("Vessel Flag")
-
+ggplot(flags, aes(x=country, y=Count, fill=colonyName)) + 
+  geom_col() + 
+  scale_fill_manual(name="colonyName",
+                    values = c("CalaMorell"= "#0072B2",
+                               "MClara"= "#E69F00",
+                               "Veneguera"= "#D55E00",
+                               "CVelho"= "#009E73"), 
+                    labels = c("CalaMorell"= "Cala Morell",
+                               "MClara"= "Montaña Clara",
+                               "Veneguera"= "Veneguera",
+                               "CVelho"= "Curral Velho"))+
+  theme_bw() + 
+  facet_wrap(~population, ncol = 1) + 
+  coord_flip() +
+  guides(fill=guide_legend("Colony"))+
+  ylab("Number of Radar events") + 
+  xlab("Vessel Flag") 
 
 total <- flags %>%
   group_by(population) %>%

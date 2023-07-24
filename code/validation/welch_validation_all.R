@@ -179,8 +179,10 @@ if(plots == "YES"){
 
   ggplot(df) +
     geom_tile(aes(x=x, y=y, fill=layer))  +
-     scale_fill_viridis_c(name = "N AIS disablings", option = "magma")+
-    #scale_fill_gradient(low = "cyan", high = "blue",name = "N AIS disablings") +
+    #scale_fill_viridis_c(name = "N AIS disablings", option = "plasma")+
+    scale_fill_gradient(low = "#FCF6F5FF", 
+                        high = "#E94B3CFF",
+                        name = "N AIS disablings") +
     # plot land mask
     geom_sf(data = world, 
             color = "gray30", fill = "gray90",lwd  = 0.05) +
@@ -188,7 +190,7 @@ if(plots == "YES"){
     coord_sf(xlim = c(lonmin+0.5, lonmax-0.8), ylim = c(latmin+0.5, latmax-1))+
     theme_classic() +
     geom_point(data=radar, aes(x=longitude, y=latitude), colour = "white", show.legend = F) +
-    geom_point(data=radar, aes(x=longitude, y=latitude, colour = Risk),  alpha = 0.8, show.legend = F) +
+    geom_point(data=radar, aes(x=longitude, y=latitude, colour = Risk),  alpha = 0.6, show.legend = F) +
     cols_risk + 
     xlab("") +
     ylab("") +
