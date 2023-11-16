@@ -29,7 +29,7 @@ colonySites <- unique(c$colonyName)
 
 for (i in seq_along(colonySites)){
 
-  # i = 1
+  # i = 3
 
 # Read all files
 trips <- files %>%
@@ -99,6 +99,23 @@ result <- indEffectTest(
 
 # save this info
 h_vals$indEffectTest <- result[["Kolmogorov-Smirnov"]][["ks"]][["p.value"]]
+
+## estimate how representative this sample of animals is of the population
+KDE <- estSpaceUse(
+  tracks = tracks_prj, 
+  scale = h_vals$href, 
+  levelUD = perc_KUD, 
+  polyOut = TRUE
+)
+
+mapKDE(KDE = KDE$UDPolygons, colony = colony)
+
+repr <- repAssess(
+  tracks    = tracks_prj, 
+  KDE       = KDE$KDE.Surface,
+  levelUD   = 50,
+  iteration = 1, 
+  bootTable = FALSE)
 
 ########
 #Step 6#
