@@ -29,7 +29,7 @@ colonySites <- unique(c$colonyName)
 
 for (i in seq_along(colonySites)){
 
-  # i = 3
+  # i = 2
 
 # Read all files
 trips <- files %>%
@@ -64,6 +64,7 @@ tracks_formatted <- formatFields(
 
 # summarize trip characteristics
 sumTrips <- tripSummary(tracks_formatted, colony)
+unique(sumTrips$ID)
 
 # write summary
 fwrite(sumTrips, file=paste0(WD,"GitData/Bird-borne-radar-detection/output/", colonySites[i] ,"_sumTrips.csv"),row.names=FALSE)
