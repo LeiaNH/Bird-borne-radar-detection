@@ -44,9 +44,9 @@ p <- ggplot(bath) +
   geom_path(data = GPS, aes(x=longitude, y=latitude, group=tripID, colour = colonyName), lwd  = 0.1, alpha=0.8, show.legend = F)+
   cols_colony +
   geom_sf(data = msk_sf, 
-          color = "gray30", fill = "gray30",lwd  = 0.05) +
+          color = "gray90", fill = "gray90",lwd  = 0.05) +
   geom_sf(data = eezs,
-          color = alpha("gray90"),
+          color = alpha("gray30"),
           fill = NA,
           lwd  = 0.05,
           lty = 1)+     
@@ -103,42 +103,6 @@ p <- ggplot(bath) +
     fontface = "italic",
     color = "black",
     size = 1.7
-  ) +
-  annotate(
-    geom = "text",
-    x = 5.2,
-    y = 39.3,
-    label = "Cala\nMorell",
-    fontface = "italic",
-    color = "#0072B2",
-    size = 1.4
-  ) +
-  annotate(
-    geom = "text",
-    x = -15,
-    y = 30,
-    label = "Monta?a\nClara",
-    fontface = "italic",
-    color = "#E69F00",
-    size = 1.4
-  ) +
-  annotate(
-    geom = "text",
-    x = -18-0.1,
-    y = 27,
-    label = "Veneguera",
-    fontface = "italic",
-    color = "#D55E00",
-    size = 1.4
-  ) +
-  annotate(
-    geom = "text",
-    x = -22.5,
-    y = 14.2,
-    label = "Curral Velho",
-    fontface = "italic",
-    color = "#009E73",
-    size = 1.4
   ) +
   geom_point(x=-17.05,y=20.99, size=0.8, shape=16, colour="black")+
   geom_point(x=-17.05,y=20.99, size=0.05, shape=16, colour="white")+
